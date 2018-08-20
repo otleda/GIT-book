@@ -1,2 +1,2 @@
 # GIT-book
-A ideia é criar um compilado para estudo do Git e Github, interativo ao fácil acesso ao estudo.
+A lógica inicial, é criar um compilado do Git e do Github, para o estudo em uma aplicação mais dinâmica.

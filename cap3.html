@@ -1,0 +1,646 @@
+3.1 [[ Git Branching - Ramos em um Nutshell ]] 
+Quase todos os VCS têm algum tipo de suporte de ramificação. Ramificação significa que você diverge da linha principal de desenvolvimento e continua a trabalhar sem mexer nessa linha principal. Em muitas ferramentas VCS, esse é um processo um pouco caro, exigindo muitas vezes a criação de uma nova cópia do diretório do código-fonte, o que pode levar muito tempo para projetos grandes.
+
+Algumas pessoas se referem ao modelo de ramificação do Git como seu "recurso matador", e isso certamente coloca o Git à parte na comunidade do VCS. Por que isso é tão especial? A maneira como o Git ramifica é incrivelmente leve, tornando as operações de ramificação quase instantâneas, e alternando entre filiais geralmente tão rápido quanto. Ao contrário de muitos outros VCSs, o Git incentiva fluxos de trabalho que ramificam e mesclam com frequência, até várias vezes em um dia. Entender e dominar esse recurso oferece uma ferramenta poderosa e exclusiva e pode mudar completamente a maneira como você se desenvolve.
+
+(Ramos em poucas palavras)
+Para realmente entender o modo como o Git faz ramificações, precisamos dar um passo para trás e examinar como o Git armazena seus dados.
+
+Como você pode se lembrar do Começando , o Git não armazena dados como uma série de changesets ou diferenças, mas sim como uma série de instantâneos.
+
+Quando você faz uma consolidação, o Git armazena um objeto de confirmação que contém um ponteiro para o instantâneo do conteúdo que você preparou. Este objeto também contém o nome do autor e e-mail, a mensagem que você digitou e ponteiros para o commit ou commits que vieram diretamente antes deste commit (seu pai ou pais): zero pais para o commit inicial, um pai para um commit normal, e vários pais para um commit que resulta de uma fusão de duas ou mais ramificações.
+
+Para visualizá-lo, vamos supor que você tenha um diretório contendo três arquivos e organize-os todos e confirme. A preparação dos arquivos calcula uma soma de verificação para cada um (o hash SHA-1 que mencionamos em Começando ), armazena essa versão do arquivo no repositório Git (o Git se refere a eles como blobs) e adiciona essa soma à área de preparação:
+
+$ git add README test.rb LICENSE
+$ git commit -m 'The initial commit of my project'
+
+Quando você cria o commit executando git commit, o Git verifica cada subdiretório (neste caso, apenas o diretório do projeto raiz) e armazena esses objetos de árvore no repositório Git. O Git então cria um objeto de confirmação que possui os metadados e um ponteiro para a árvore do projeto raiz, para que possa recriar esse instantâneo quando necessário.
+
+Seu repositório Git agora contém cinco objetos: um blob para o conteúdo de cada um dos seus três arquivos, uma árvore que lista o conteúdo do diretório e especifica quais nomes de arquivos são armazenados como quais blobs, e um commit com o ponteiro para aquela árvore raiz e todos os metadados de commit.
+
+
+                             [IMAGE -FIGURE -9  Um commit e sua árvore ]
+
+
+Se você fizer algumas alterações e confirmar novamente, o próximo commit armazena um ponteiro para o commit que veio imediatamente antes dele.
+
+
+
+                                [IMAGE -FIGURE -10  Compromissos e seus pais. ]
+
+
+
+
+Uma ramificação no Git é simplesmente um ponteiro móvel leve para um desses commits. O nome da ramificação padrão no Git é master. Quando você começa a fazer commits, recebe uma masterramificação que aponta para o último commit que você fez. Toda vez que você se compromete, ele avança automaticamente.
+
+|Nota
+O ramo "mestre" no Git não é um ramo especial. É exatamente como qualquer outro ramo. A única razão pela qual quase todo repositório tem um é que o git initcomando o cria por padrão e a maioria das pessoas não se incomoda em alterá-lo.
+
+
+                                [IMAGE -FIGURE -11  Um ramo e seu histórico de commit. ]
+
+
+
+(Criando um novo ramo)
+O que acontece se você criar um novo branch? Bem, isso cria um novo ponteiro para você se movimentar. Vamos supor que você crie uma nova ramificação chamada testing. Você faz isso com o git branchcomando:
+
+$ git branch testing
+
+Isso cria um novo ponteiro para o mesmo commit no qual você está atualmente.
+
+
+                            
+                            [IMAGE -FIGURE -12 Dois ramos apontando para a mesma série de commits. ]
+
+
+
+
+Como o Git sabe em que ramo você está atualmente? Mantém um ponteiro especial chamado HEAD. Note que isto é muito diferente do conceito de HEADoutros VCSs com os quais você pode estar acostumado, como o Subversion ou o CVS. No Git, este é um ponteiro para o ramo local em que você está atualmente. Nesse caso, você ainda está ativo master. O [git branch] comando apenas criou um novo branch - ele não alternou para esse branch.
+
+
+
+                        [IMAGE -FIGURE -13 CABEÇA apontando para um ramo. ]
+
+
+Você pode facilmente ver isso executando um [git log] comando simples que mostra onde os ponteiros de ramificação estão apontando. Esta opção é chamada --decorate.
+
+$ git log --oneline --decorate
+f30ab (HEAD -> master, testing) add feature #32 - ability to add new formats to the central interface
+34ac2 Fixed bug #1328 - stack overflow under certain conditions
+98ca9 The initial commit of my project
+
+Você pode ver as ramificações "master" e "testing" que estão ao lado do f30ab commit.
+
+(Ramos de comutação)
+Para alternar para uma ramificação existente, você executa o git checkoutcomando. Vamos mudar para o novo testing ramo:
+
+$ git checkout testing
+
+Isso se move HEAD para apontar para o testing ramo.
+
+HEAD aponta para o ramo atual.
+
+                        
+                           [ IMAGE -FIGURE -14  HEAD aponta para o ramo atual. ]
+
+
+
+Qual é o significado disso? Bem, vamos fazer outro commit:
+
+$ vim test.rb
+$ git commit -a -m 'made a change'
+
+
+                            [IMAGE -FIGURE -15   ramo HEAD avança quando um commit é feito. ]
+
+
+
+Isso é interessante, porque agora sua testing ramificação avançou, mas sua master ramificação ainda aponta para a confirmação em que você estava quando correu git checkout para alternar as ramificações. Vamos voltar para o master ramo:
+
+$ git checkout master
+A cabeça se move quando você faz o checkout.
+
+
+
+                            [IMAGE -FIGURE -16  A cabeça se move quando você faz o checkout]
+
+
+
+Esse comando fez duas coisas. Ele moveu o ponteiro HEAD de volta para apontar para a masterramificação e reverteu os arquivos em seu diretório de trabalho de volta para a captura instantânea para a qual master aponta. Isso também significa que as alterações feitas neste ponto divergirão de uma versão mais antiga do projeto. Essencialmente retrocede o trabalho que você fez em sua testing filial para que você possa ir em uma direção diferente.
+
+|Nota
+A alternância de ramificações altera arquivos em seu diretório de trabalho
+É importante observar que quando você alterna as ramificações no Git, os arquivos em seu diretório de trabalho serão alterados. Se você alternar para uma ramificação mais antiga, seu diretório de trabalho será revertido para se parecer com a última vez que você cometeu nessa ramificação. Se o Git não puder fazê-lo de maneira limpa, não permitirá que você mude.
+
+Vamos fazer algumas alterações e confirmar novamente:
+
+$ vim test.rb
+$ git commit -a -m 'made other changes'
+
+Agora o histórico do seu projeto divergiu (veja Histórico divergente ). Você criou e mudou para um ramo, fez algum trabalho nele, depois voltou para o seu ramo principal e fez outro trabalho. Ambas as alterações são isoladas em ramificações separadas: você pode alternar entre as ramificações e mesclá-las quando estiver pronto. E você fez tudo isso com simples branch, checkoute commitcomandos.
+
+
+
+                                [IMAGE -FIGURE -17  Histórico divergente]
+
+
+
+Você também pode ver isso facilmente com o [git log] comando. Se você executar [git log --oneline --decorate --graph --all], imprimirá o histórico de seus commits, mostrando onde estão seus ponteiros de ramificação e como seu histórico divergiu.
+
+$ git log --oneline --decorate --graph --all
+* c2b9e (HEAD, master) made other changes
+| * 87ab2 (testing) made a change
+|/
+* f30ab add feature #32 - ability to add new formats to the
+* 34ac2 fixed bug #1328 - stack overflow under certain conditions
+* 98ca9 initial commit of my project
+
+Como uma ramificação no Git é na verdade um arquivo simples que contém a soma de verificação SHA-1 de 40 caracteres do commit para o qual ele aponta, as ramificações são baratas para serem criadas e destruídas. Criar uma nova ramificação é tão rápido e simples quanto escrever 41 bytes em um arquivo (40 caracteres e uma nova linha).
+
+Isso está em nítido contraste com a maneira como a maioria das ferramentas VCS antigas ramificam, o que envolve a cópia de todos os arquivos do projeto em um segundo diretório. Isso pode levar vários segundos ou até minutos, dependendo do tamanho do projeto, enquanto no Git o processo é sempre instantâneo. Além disso, como estamos gravando os pais quando nos comprometemos, encontrar uma base de mesclagem apropriada para mesclagem é feito automaticamente para nós e geralmente é muito fácil de fazer. Esses recursos ajudam a incentivar os desenvolvedores a criar e usar ramificações com frequência.
+
+Vamos ver por que você deveria fazer isso.
+
+
+3.2 [[ Ramificação Git - ramificação e fusão básicas ]]
+
+Ramificação e fusão básicas
+
+Vamos passar por um exemplo simples de ramificação e mesclagem com um fluxo de trabalho que você pode usar no mundo real. Você seguirá estas etapas:
+
+1. Trabalhe em um site.
+2. Crie um ramo para uma nova história em que você está trabalhando.
+3. Faça algum trabalho nesse ramo.
+
+Nesse estágio, você receberá uma ligação dizendo que outro problema é crítico e precisa de um hotfix. Você fará o seguinte:
+
+1. Mude para o seu ramo de produção.
+2. Crie uma ramificação para adicionar o hotfix.
+3. Depois de testado, mescle a ramificação do hotfix e envie para a produção.
+4. Volte para sua história original e continue trabalhando.
+
+(Ramificação Básica)
+Primeiro, digamos que você esteja trabalhando em seu projeto e tenha alguns commits já.
+
+
+
+                            [figure 18 Um Histórico de Confirmação Simples]
+
+
+
+
+Você decidiu que vai trabalhar na questão nº 53 em qualquer sistema de rastreamento de problemas usado pela sua empresa. Para criar uma ramificação e alternar para ela ao mesmo tempo, você pode executar o [git checkout] comando com o [-b] switch:
+
+$ git checkout -b iss53
+Switched to a new branch "iss53"
+
+Isso é uma forma abreviada de:
+
+$ git branch iss53
+$ git checkout iss53
+
+
+                        [Figura 19. Criando um novo ponteiro de ramificação]
+
+
+Você trabalha no seu site e faz alguns commits. Ao fazer isso, o iss53branch avança, porque você fez checkout (isto é, o seu HEAD está apontando para ele):
+
+$ vim index.html
+$ git commit -a -m 'added a new footer [issue 53]'
+
+
+                        [ Figura 20. O iss53 ramo avançou com o seu trabalho ]
+
+
+Agora você recebe a ligação de que há um problema com o site e precisa corrigi-lo imediatamente. Com o Git, você não precisa implantar sua correção junto com as iss53alterações feitas e não precisa se esforçar muito para reverter essas alterações antes de poder aplicar sua correção ao que está em produção. . Tudo o que você precisa fazer é voltar para sua master filial.
+
+No entanto, antes de fazer isso, observe que, se o seu diretório de trabalho ou área de preparação tiver alterações não confirmadas que entrem em conflito com a ramificação que você está verificando, o Git não permitirá que você alterne as ramificações. É melhor ter um estado de trabalho limpo quando você alterna ramificações. Há maneiras de contornar isso (ou seja, stashing e cometer alterações) que abordaremos mais adiante, em Stashing and Cleaning . Por enquanto, vamos supor que você tenha confirmado todas as alterações, para poder voltar para sua master filial:
+
+$ git checkout master
+Switched to branch 'master'
+
+Neste ponto, o diretório de trabalho do seu projeto é exatamente como estava antes de você começar a trabalhar na edição 53, e você pode se concentrar no seu hotfix. Esse é um ponto importante a ser lembrado: quando você alterna as ramificações, o Git redefine seu diretório de trabalho para que pareça com a última vez que você fez o commit nessa ramificação. Ele adiciona, remove e modifica arquivos automaticamente para garantir que a sua cópia de trabalho seja a aparência da ramificação no seu último commit.
+
+Em seguida, você tem um hotfix para fazer. Vamos criar uma ramificação de hotfix na qual trabalhar até que seja concluída:
+
+$ git checkout -b hotfix
+Switched to a new branch 'hotfix'
+$ vim index.html
+$ git commit -a -m 'fixed the broken email address'
+[hotfix 1fb7853] fixed the broken email address
+ 1 file changed, 2 insertions(+)
+
+
+
+                        [ Figura 21. Filial de Hotfix com base em master ]
+
+
+Você pode executar seus testes, verificar se o hotfix é o que deseja e mesclá-lo novamente em sua master ramificação para implantar na produção. Você faz isso com o [git merge] comando:
+
+$ git checkout master
+$ git merge hotfix
+Updating f42c576..3a0874c
+Fast-forward
+ index.html | 2 ++
+ 1 file changed, 2 insertions(+)
+
+Você notará a frase "avançar rapidamente" nessa mesclagem. Como o commit C4 apontado pelo branch no qual hotfix você se fundiu estava diretamente à frente do commit em que C2 você está, o Git simplesmente move o ponteiro para frente. Para expressar isso de outra maneira, quando você tenta mesclar uma confirmação com uma confirmação que pode ser alcançada seguindo o histórico da primeira consolidação, o Git simplifica as coisas movendo o ponteiro para frente porque não há trabalho divergente a ser mesclado - isso é chamado de “ avanço rápido. ”
+
+Sua alteração agora está no instantâneo da confirmação apontada pela master ramificação e você pode implementar a correção.
+
+
+                            [ Figura 22. masteré reenviada para hotfix ]
+
+
+
+Depois que sua correção super importante for implantada, você estará pronto para voltar ao trabalho que estava fazendo antes de ser interrompido. No entanto, primeiro você excluirá a hotfix ramificação, porque não precisa mais dela - a masterramificação aponta para o mesmo lugar. Você pode excluí-lo com a [-d] opção de [git branch]:
+
+$ git branch -d hotfix
+Deleted branch hotfix (3a0874c).
+
+Agora você pode voltar para o seu ramo de trabalho em andamento no número 53 e continuar trabalhando nele.
+
+$ git checkout iss53
+Switched to branch "iss53"
+$ vim index.html
+$ git commit -a -m 'finished the new footer [issue 53]'
+[iss53 ad82d7a] finished the new footer [issue 53]
+1 file changed, 1 insertion(+)
+
+ 
+                            [Figura 23. O trabalho continua iss53 ]
+
+
+Vale a pena notar aqui que o trabalho que você fez na sua hotfixfilial não está contido nos arquivos da sua iss53filial. Se for necessário, você pode mesclar sua masterramificação em sua iss53ramificação executando git merge master, ou pode esperar para integrar essas alterações até decidir recolocar a iss53ramificação mastermais tarde.
+
+(Fundição Básica)
+Suponha que você tenha decidido que o trabalho do seu problema # 53 está completo e pronto para ser mesclado em sua master filial. Para fazer isso, você vai mesclar sua iss53 filial master, assim como você mesclou sua hotfix filial anteriormente. Tudo o que você precisa fazer é verificar o ramo no qual deseja se fundir e, em seguida, executar o [git merge] comando:
+
+$ git checkout master
+Switched to branch 'master'
+$ git merge iss53
+Merge made by the 'recursive' strategy.
+index.html |    1 +
+1 file changed, 1 insertion(+)
+
+Isso parece um pouco diferente da hotfix mesclagem que você fez anteriormente. Nesse caso, seu histórico de desenvolvimento divergiu de algum ponto anterior. Como o commit no branch em que você está não é um ancestral direto do branch no qual você está se fundindo, o Git tem que fazer algum trabalho. Nesse caso, o Git faz uma mesclagem simples de três vias, usando os dois instantâneos apontados pelas dicas de ramificação e pelo ancestral comum dos dois.
+
+
+
+                    [ Figura 24. Três Instantâneos Usados ​​em uma Mesclagem Típica ]
+
+
+Em vez de simplesmente mover o ponteiro de ramificação para frente, o Git cria um novo instantâneo que resulta dessa mesclagem de três vias e cria automaticamente um novo commit que aponta para ele. Isso é chamado de consolidação de mesclagem e é especial porque possui mais de um pai.
+
+                    
+                            [ Figura 25. Uma consolidação de mesclagem ]
+
+
+Vale a pena ressaltar que o Git determina o melhor ancestral comum a ser usado para sua base de mesclagem; isso é diferente de ferramentas mais antigas, como CVS ou Subversion (antes da versão 1.5), em que o desenvolvedor que faz a mesclagem tinha que descobrir a melhor base de mesclagem para si. Isso facilita bastante a mesclagem no Git do que nesses outros sistemas.
+
+Agora que seu trabalho foi mesclado, você não precisa mais do iss53ramo. Você pode fechar o ticket em seu sistema de rastreamento de tickets e excluir o ramo:
+
+$ git branch -d iss53
+
+(Conflitos básicos de mesclagem)
+Ocasionalmente, esse processo não corre bem. Se você mudou a mesma parte do mesmo arquivo de maneira diferente nas duas ramificações que você está unindo, o Git não poderá mesclá-las de maneira limpa. Se a sua correção para o problema # 53 modificou a mesma parte de um arquivo como o hotfix, você terá um conflito de mesclagem semelhante a este:
+
+$ git merge iss53
+Auto-merging index.html
+CONFLICT (content): Merge conflict in index.html
+Automatic merge failed; fix conflicts and then commit the result.
+
+O Git não criou automaticamente um novo commit de mesclagem. Ele pausou o processo enquanto você resolveu o conflito. Se você quiser ver quais arquivos estão desimpedidos a qualquer momento após um conflito de mesclagem, você pode executar git status:
+
+$ git status
+On branch master
+You have unmerged paths.
+  (fix conflicts and run "git commit")
+
+Unmerged paths:
+  (use "git add <file>..." to mark resolution)
+
+    both modified:      index.html
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+Qualquer coisa que tenha conflitos de mesclagem e não tenha sido resolvida será listada como não mesclada. O Git adiciona marcadores padrão de resolução de conflitos aos arquivos que possuem conflitos, para que você possa abri-los manualmente e resolver esses conflitos. Seu arquivo contém uma seção parecida com esta:
+
+<<<<<<< HEAD:index.html
+<div id="footer">contact : email.support@github.com</div>
+=======
+<div id="footer">
+ please contact us at support@github.com
+</div>
+>>>>>>> iss53:index.html
+
+Isso significa que a versão em HEAD(seu masterramo, porque foi o que você tinha feito quando você executou seu comando de mesclagem) é a parte superior desse bloco (tudo acima do =======), enquanto a versão em seu iss53ramo se parece com tudo na parte inferior . Para resolver o conflito, você deve escolher um lado ou outro ou mesclar o conteúdo por conta própria. Por exemplo, você pode resolver esse conflito substituindo o bloco inteiro por:
+
+<div id="footer">
+please contact us at email.support@github.com
+</div>
+
+Esta resolução tem um pouco de cada secção, e a <<<<<<<, =======, e >>>>>>>linhas de ter sido completamente removido. Depois de ter resolvido cada uma dessas seções em cada arquivo em conflito, execute git addem cada arquivo para marcá-lo como resolvido. A preparação do arquivo marca isso como resolvido no Git.
+
+Se você quiser usar uma ferramenta gráfica para resolver esses problemas, poderá executar git mergetool, o que aciona uma ferramenta de mesclagem visual apropriada e orienta você nos conflitos:
+
+
+$ git mergetool
+
+This message is displayed because 'merge.tool' is not configured.
+See 'git mergetool --tool-help' or 'git help config' for more details.
+'git mergetool' will now attempt to use one of the following tools:
+opendiff kdiff3 tkdiff xxdiff meld tortoisemerge gvimdiff diffuse diffmerge ecmerge p4merge araxis bc3 codecompare vimdiff emerge
+Merging:
+index.html
+
+Normal merge conflict for 'index.html':
+  {local}: modified file
+  {remote}: modified file
+Hit return to start merge resolution tool (opendiff):
+
+
+Se você quiser usar uma ferramenta de mesclagem diferente da padrão (o Git escolheu opendiff neste caso porque o comando foi executado em um Mac), você pode ver todas as ferramentas suportadas listadas na parte superior depois de “uma das seguintes ferramentas”. o nome da ferramenta que você preferiria usar.
+
+|Nota
+Se você precisar de ferramentas mais avançadas para resolver conflitos complicados de mesclagem, abordaremos mais sobre a mesclagem no link: Advanced Merging .
+
+Depois de sair da ferramenta de mesclagem, o Git perguntará se a mesclagem foi bem-sucedida. Se você disser ao script que foi, ele prepara o arquivo para marcá-lo como resolvido para você. Você pode executar git statusnovamente para verificar se todos os conflitos foram resolvidos:
+
+$ git status
+On branch master
+All conflicts fixed but you are still merging.
+  (use "git commit" to conclude merge)
+
+Changes to be committed:
+
+    modified:   index.html
+
+Se você está feliz com isso e verificar se tudo o que teve conflitos foi preparado, você pode digitar [git commit] para finalizar o commit da mesclagem. A mensagem de commit por padrão é algo como isto:
+
+Merge branch 'iss53'
+
+Conflicts:
+    index.html
+#
+# It looks like you may be committing a merge.
+# If this is not correct, please remove the file
+#	.git/MERGE_HEAD
+# and try again.
+
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# All conflicts fixed but you are still merging.
+#
+# Changes to be committed:
+#	modified:   index.html
+#
+
+Se você acha que seria útil para outras pessoas que olham para essa mesclagem no futuro, você pode modificar essa mensagem de confirmação com detalhes sobre como você resolveu a mesclagem e explicar por que você fez as alterações feitas se elas não forem óbvias.
+
+
+3.3 [[ Ramificação do Git - Gerenciamento de Filial ]]
+
+Gerenciamento de filiais
+Agora que você criou, mesclou e excluiu algumas ramificações, vamos ver algumas ferramentas de gerenciamento de ramificação que serão úteis quando você começar a usar as ramificações o tempo todo.
+
+O [git branch] comando faz mais do que apenas criar e excluir ramificações. Se você executá-lo sem argumentos, obterá uma listagem simples de suas ramificações atuais:
+
+$ git branch
+  iss53
+* master
+  testing
+
+Observe o * caractere que prefixa a master ramificação: indica a ramificação que você atualmente fez checkout (ou seja, a ramificação que HEAD aponta para). Isso significa que, se você se comprometer nesse ponto, o master ramo será movido para frente com seu novo trabalho. Para ver o último commit em cada branch, você pode executar [git branch -v]:
+
+$ git branch -v
+  iss53   93b412c fix javascript issue
+* master  7a98805 Merge branch 'iss53'
+  testing 782fd34 add scott to the author list in the readmes
+
+O útil [--merged] e as [--no-merged] opções podem filtrar essa lista para as ramificações que você tem ou ainda não foram mescladas na ramificação em que você está atualmente. Para ver quais filiais já estão mescladas no ramo em que você está, você pode executar [git branch --merged]:
+
+$ git branch --merged
+  iss53
+* master
+
+Como você já se fundiu iss53 anteriormente, você o vê na sua lista. Ramos nesta lista sem o * na frente deles geralmente são bons para excluir com [git branch -d]; você já incorporou o trabalho deles em outro ramo, então você não perderá nada.
+
+Para ver todas as ramificações que contêm trabalhos que ainda não foram mesclados, é possível executar [git branch --no-merged]:
+
+$ git branch --no-merged
+  testing
+
+Isso mostra seu outro ramo. Como contém trabalhos que ainda não foram mesclados, tentar excluí-lo [git branch -d] falhará:
+
+$ git branch -d testing
+error: The branch 'testing' is not fully merged.
+If you are sure you want to delete it, run 'git branch -D testing'.
+
+Se você realmente quiser excluir a ramificação e perder esse trabalho, poderá forçá-la [-D], conforme a mensagem útil apontar.
+
+
+
+3.4 [[Git Branching - Fluxos de Trabalho de Ramificação]]
+
+Fluxos de Trabalho de Ramificação
+
+Agora que você tem o básico de ramificar e mesclar, o que você pode ou deveria fazer com eles? Nesta seção, abordaremos alguns fluxos de trabalho comuns que essa ramificação leve torna possível, para que você possa decidir se deseja incorporá-la ao seu próprio ciclo de desenvolvimento.
+
+(Ramos de longa duração)
+Como o Git usa uma mesclagem simples de três vias, geralmente é fácil mesclar um ramo em outro várias vezes durante um longo período. Isso significa que você pode ter várias ramificações que estão sempre abertas e que você usa para diferentes estágios de seu ciclo de desenvolvimento; você pode mesclar regularmente de alguns deles para os outros.
+
+Muitos desenvolvedores do Git têm um fluxo de trabalho que adota essa abordagem, como ter apenas um código totalmente estável em sua masterramificação - possivelmente apenas o código que foi ou será liberado. Eles têm outro ramo paralelo chamado [develop] ou [next] que eles trabalham ou usam para testar a estabilidade - não é necessariamente sempre estável, mas sempre que chega a um estado estável, ele pode ser mesclado master. Ele é usado para puxar ramos de tópicos (ramos de vida curta, como o seu iss53 ramo anterior ) quando eles estão prontos, para ter certeza de que eles passam por todos os testes e não apresentam bugs.
+
+Na realidade, estamos falando de ponteiros subindo a linha de commits que você está fazendo. Os branches estáveis ​​estão mais abaixo na linha do seu histórico de commits, e os branches de ponta estão mais adiantados no histórico.
+
+        
+            
+                    [ Figura 26. Uma visão linear da ramificação de estabilidade progressiva ]
+
+
+
+Geralmente, é mais fácil pensar neles como silos de trabalho, onde conjuntos de commits se transformam em um silo mais estável quando são totalmente testados.
+
+
+
+                    [ Figura 27. Uma visão de “silo” de ramificações de estabilidade progressiva ]
+
+
+
+
+Você pode continuar fazendo isso por vários níveis de estabilidade. Alguns projetos maiores também têm um [proposed] ou [pu] ramo (alterações propostas) que tem ramos que podem não estar pronto para ir para o integrado [next] ou [master] ramo. A ideia é que seus ramos estejam em vários níveis de estabilidade; quando atingem um nível mais estável, eles são mesclados no ramo acima deles. Novamente, ter várias ramificações de longa duração não é necessário, mas geralmente é útil, especialmente quando você está lidando com projetos muito grandes ou complexos.
+
+(Ramos de tópicos)
+Os ramos de tópicos, no entanto, são úteis em projetos de qualquer tamanho. Um ramo de tópico é um ramo de curta duração que você cria e usa para um único recurso específico ou trabalho relacionado. Isso é algo que você provavelmente nunca fez com um VCS antes, porque geralmente é muito caro criar e mesclar ramificações. Mas no Git é comum criar, trabalhar, mesclar e excluir ramificações várias vezes ao dia.
+
+Você viu isso na última seção com os iss53 e hotfix ramos que você criou. Você fez alguns commits neles e apagou-os diretamente após mesclá-los em sua ramificação principal. Essa técnica permite alternar o contexto de maneira rápida e completa. Como seu trabalho é separado em silos, onde todas as alterações nesse ramo têm relação com esse tópico, é mais fácil ver o que aconteceu durante a revisão do código. Você pode manter as alterações por minutos, dias ou meses e mesclá-las quando estiverem prontas, independentemente da ordem em que foram criadas ou trabalhadas.
+
+Considere um exemplo de fazer algum trabalho (on master), ramificando-se para um problema ( iss91), trabalhando nele um pouco, ramificando o segundo ramo para tentar outra maneira de lidar com a mesma coisa ( iss91v2), voltando para o seu master ramo e trabalhando lá por um tempo e, em seguida, ramificando-se lá para fazer algum trabalho que você não tem certeza é uma boa idéia ( [dumbidea] ramo). Seu histórico de commits será parecido com isto:
+
+ 
+
+                                [Figura 28. Vários ramos de tópicos ]
+
+
+
+
+Agora, digamos que você decida gostar da segunda solução para o seu problema: best ( iss91v2); e você mostrou o dumbidearamo para seus colegas de trabalho e acabou sendo genial. Você pode jogar fora o iss91ramo original (perdendo commits C5e C6) e mesclar nos outros dois. Sua história então se parece com isso:
+
+ 
+
+                            [Figura 29. Histórico após a mesclagem dumbideaeiss91v2 ]
+
+
+
+Vamos entrar em mais detalhes sobre os vários fluxos de trabalho possíveis para o seu projeto Git no [link: Distributed Git] , portanto, antes de decidir qual esquema de ramificação seu próximo projeto usará, não deixe de ler esse capítulo.
+
+É importante lembrar que quando você está fazendo tudo isso, essas ramificações são completamente locais. Quando você está ramificando e mesclando, tudo está sendo feito apenas no seu repositório Git - nenhuma comunicação do servidor está acontecendo.
+
+
+
+3.5 [[ Ramificação Git - Ramificações Remotas  ]]
+
+Filiais Remotas
+
+Referências remotas são referências (ponteiros) em seus repositórios remotos, incluindo ramificações, tags e assim por diante. Você pode obter uma lista completa de referências remotas explicitamente com [ git ls-remote [remote] ] ou [ git remote show [remote] ] para filiais remotas, bem como mais informações. No entanto, uma maneira mais comum é aproveitar as ramificações de rastreamento remoto.
+
+Filiais de rastreamento remoto são referências ao estado de filiais remotas. São referências locais que você não pode mover; Eles são movidos automaticamente para você sempre que você faz qualquer comunicação de rede. As ramificações de controle remoto agem como marcadores para lembrá-lo de onde as ramificações em seus repositórios remotos estavam na última vez que você se conectou a elas.
+
+Eles tomam a forma (remote)/(branch). Por exemplo, se você quisesse ver como era o masterramo do seu [origin] controle remoto desde a última vez que se comunicou com ele, você verificaria o origin/maste ramo. Se você estava trabalhando em um problema com um parceiro e eles criaram uma iss53filial, você pode ter sua própria iss53 filial local ; mas o ramo no servidor apontaria para o commit em origin/iss53.
+
+Isso pode ser um pouco confuso, então vamos dar uma olhada em um exemplo. Digamos que você tenha um servidor Git em sua rede em git.ourcompany.com. Se você clona a partir disso, o clonecomando do Git o nomeia automaticamente originpara você, obtém todos os seus dados, cria um ponteiro para o local de sua masterramificação e o nomeia origin/masterlocalmente. O Git também lhe dá o seu próprio masterbranch local , começando no mesmo lugar que o masterbranch da origem , então você tem algo para trabalhar.
+
+|Nota
+"Origem" não é especial
+Assim como o nome da ramificação “mestre” não tem nenhum significado especial no Git, nem “origem”. Enquanto “mestre” é o nome padrão para uma ramificação inicial quando você executa, git initque é a única razão pela qual é amplamente utilizado, “origem” é o nome padrão para um controle remoto quando você executa [git clone]. Se você executar [git clone -o booyah], você terá booyah/mastercomo ramificação remota padrão.
+
+
+
+                        [ Figura 30. Repositórios do servidor e locais após a clonagem ]
+
+
+
+
+Se você fizer algum trabalho em sua master filial local e, enquanto isso, outra pessoa empurra git.ourcompany.com e atualiza sua master ramificação, seus históricos avançam de forma diferente. Além disso, contanto que você fique fora de contato com o servidor de origem, o origin/master ponteiro não se moverá.
+
+
+    
+                        [ Figura 31. O trabalho local e remoto pode divergir ]
+
+
+
+Para sincronizar seu trabalho, você executa um [git fetch origin] comando. Este comando procura qual servidor “origem” é (neste caso, é git.ourcompany.com), busca quaisquer dados que você ainda não tenha, e atualiza seu banco de dados local, movendo o origin/master ponteiro para o novo, mais atualizado. posição.
+
+ 
+                        [Figura 32. git fetchatualiza suas referências remotas ]
+
+
+
+Para demonstrar ter vários servidores remotos e quais ramificações remotas para esses projetos remotos são, vamos supor que você tenha outro servidor Git interno que é usado apenas para desenvolvimento por uma de suas equipes de sprint. Este servidor está em git.team1.ourcompany.com. Você pode adicioná-lo como uma nova referência remota ao projeto no qual você está trabalhando, executando o [git remote add] comando conforme abordamos no Git Basics . Nomeie esse controle remoto teamone, que será seu nome curto para todo esse URL.
+
+ 
+
+                    [Figura 33. Adicionando outro servidor como um controle remoto ]
+
+
+Agora, você pode executar [git fetch teamone] para buscar tudo o que o teamone servidor remoto possui e que você ainda não possui. Como esse servidor tem um subconjunto dos dados que seu originservidor tem agora, o Git não busca dados, mas define uma ramificação de controle remoto chamada teamone/master para apontar para a confirmação que teamonetem como master ramificação.
+
+ 
+
+                    [Figura 34. Ramo de rastreamento remoto para teamone/master ]
+
+
+(Empurrando)
+Quando você deseja compartilhar uma ramificação com o mundo, precisa empurrá-la para um controle remoto ao qual tenha acesso de gravação. Suas ramificações locais não são sincronizadas automaticamente com os remotos nos quais você escreve - você precisa enviar explicitamente as ramificações que deseja compartilhar. Dessa forma, você pode usar ramificações particulares para o trabalho que não deseja compartilhar e enviar apenas as ramificações de tópicos nas quais deseja colaborar.
+
+Se você tem uma ramificação com serverfixa qual deseja trabalhar com outras pessoas, pode aumentá-la da mesma maneira que empurrou sua primeira ramificação. Executar [git push <remote> <branch>]:
+
+$ git push origin serverfix
+Counting objects: 24, done.
+Delta compression using up to 8 threads.
+Compressing objects: 100% (15/15), done.
+Writing objects: 100% (24/24), 1.91 KiB | 0 bytes/s, done.
+Total 24 (delta 2), reused 0 (delta 0)
+To https://github.com/schacon/simplegit
+ * [new branch]      serverfix -> serverfix
+
+Isso é um atalho. O Git expande automaticamente o serverfix nome do branch para refs/heads/serverfix:refs/heads/serverfix, o que significa, “Pegue minha ramificação local do serverfix e carregue-o para atualizar a ramificação do serverfix do remote.” Examinaremos a refs/heads/peça detalhadamente no Git Internals , mas geralmente você pode desativá-la. Você também pode fazer [git push origin serverfix:serverfix], o que faz a mesma coisa - ele diz: "Pegue meu serverfix e faça o serverfix do remoto". Você pode usar esse formato para empurrar um branch local para um branch remoto que tenha um nome diferente. Se você não quisesse que ele fosse chamado serverfix no controle remoto, você poderia executar [git push origin serverfix:awesomebranch para empurrar sua serverfix ramificação local para a awesomebranch ramificação no projeto remoto.
+
+|Nota
+Não digite sua senha toda vez
+Se você estiver usando um URL HTTPS para transferir, o servidor Git solicitará seu nome de usuário e senha para autenticação. Por padrão, ele irá avisá-lo no terminal para obter essas informações, para que o servidor saiba se você tem permissão para fazer push.
+
+Se você não quiser digitá-lo todas as vezes que enviar, poderá configurar um “cache de credenciais”. O mais simples é apenas mantê-lo na memória por alguns minutos, que você pode facilmente configurar executando [git config --global credential.helper cache].
+
+Para obter mais informações sobre as várias opções de cache de credenciais disponíveis, consulte Armazenamento de credenciais .
+
+Na próxima vez que um de seus colaboradores buscar no servidor, eles receberão uma referência para onde a versão do servidor serverfixestá sob o ramo remoto origin/serverfix:
+
+$ git fetch origin
+remote: Counting objects: 7, done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 3 (delta 0), reused 3 (delta 0)
+Unpacking objects: 100% (3/3), done.
+From https://github.com/schacon/simplegit
+ * [new branch]      serverfix    -> origin/serverfix
+
+
+É importante observar que, quando você faz uma busca que desativa novos ramos de rastreamento remoto, não tem cópias editáveis ​​locais deles. Em outras palavras, nesse caso, você não tem um novo serverfixbranch - você só tem um origin/serverfix ponteiro que você não pode modificar.
+
+Para mesclar esse trabalho em seu ramo de trabalho atual, você pode executar [git merge origin/serverfix]. Se você quiser sua própria serverfix ramificação em que possa trabalhar, pode basear-se em sua ramificação de rastreamento remoto:
+
+$ git checkout -b serverfix origin/serverfix
+Branch serverfix set up to track remote branch serverfix from origin.
+Switched to a new branch 'serverfix'
+
+Isto dá-lhe um ramo local que você pode trabalhar, que começa onde origin/serverfixestá.
+
+
+
+(Filiais de Rastreamento)
+Fazer check-out de uma ramificação local de uma ramificação de rastreamento remoto cria automaticamente o que é chamado de “ramificação de rastreamento” (e a ramificação que ele rastreia é chamada de “ramificação upstream”). As ramificações de rastreamento são ramificações locais que têm um relacionamento direto com uma ramificação remota. Se você estiver em uma ramificação e tipo de rastreamento [git pull], o Git saberá automaticamente de qual servidor buscar e ramificar para se fundir.
+
+Quando você clona um repositório, geralmente cria automaticamente um master branch que rastreia origin/master. No entanto, você pode configurar outros ramos de rastreamento, se desejar - aqueles que rastreiam ramificações em outros controles remotos ou não rastreiam a master ramificação. O caso simples é o exemplo que você acabou de ver, rodando [ git checkout -b [branch] [remotename]/[branch] ]. Esta é uma operação bastante comum que o Git fornece a [--track] abreviação:
+
+$ git checkout --track origin/serverfix
+Branch serverfix set up to track remote branch serverfix from origin.
+Switched to a new branch 'serverfix'
+
+Na verdade, isso é tão comum que existe até um atalho para esse atalho. Se o nome da ramificação que você está tentando fazer checkout (a) não existir e (b) corresponder exatamente a um nome em apenas um controle remoto, o Git criará uma ramificação de rastreamento para você:
+
+$ git checkout serverfix
+Branch serverfix set up to track remote branch serverfix from origin.
+Switched to a new branch 'serverfix'
+
+Para configurar uma ramificação local com um nome diferente da ramificação remota, você pode usar facilmente a primeira versão com um nome de ramificação local diferente:
+
+$ git checkout -b sf origin/serverfix
+Branch sf set up to track remote branch serverfix from origin.
+Switched to a new branch 'sf'
+
+Agora, sua filial local [sf] será automaticamente removida origin/serverfix.
+
+Se você já tem uma filial local e deseja configurá-la para uma ramificação remota que acabou de baixar, ou deseja alterar a ramificação de upstream que está rastreando, use a opção -uou para defini-la explicitamente a qualquer momento.--set-upstream-togit branch
+
+$ git branch -u origin/serverfix
+Branch serverfix set up to track remote branch serverfix from origin.
+
+|Nota
+Taquigrafia a montante
+Quando você tem uma ramificação de rastreamento configurada, você pode referenciar sua ramificação upstream com o atalho @{upstream} ou a @{u} abreviação. Então, se você está no master ramo e está rastreando origin/master, você pode dizer algo como, em [git merge @{u}] vez de, [git merge origin/master] se desejar.
+
+Se você quiser ver quais ramificações de rastreamento você configurou, use a [-vv] opção para [git branch]. Isso listará suas filiais locais com mais informações, incluindo o que cada filial está rastreando e se sua filial local está à frente, atrás ou ambas.
+
+$ git branch -vv
+  iss53     7e424c3 [origin/iss53: ahead 2] forgot the brackets
+  master    1ae2a45 [origin/master] deploying index fix
+* serverfix f8674d9 [teamone/server-fix-good: ahead 3, behind 1] this should do it
+  testing   5ea463a trying something new
+
+Então, aqui podemos ver que nossa iss53ramificação está rastreando origin/iss53e está "à frente" por dois, o que significa que temos dois commits localmente que não são enviados para o servidor. Também podemos ver que nossa master filial está rastreando origin/master e está atualizada. Em seguida, podemos ver que nossa serverfix filial está rastreando o server-fix-good ramo em nosso teamone servidor e está à frente por três e por trás de um, o que significa que há um commit no servidor que ainda não foram mesclados e três commits localmente que não foram implementados . Finalmente, podemos ver que nossa testing filial não está rastreando nenhum ramo remoto.
+
+É importante observar que esses números são apenas desde a última vez que você buscou em cada servidor. Esse comando não alcança os servidores, está informando sobre o que ele armazenou nesses servidores localmente. Se você quer ficar totalmente atualizado antes e atrás dos números, precisará buscar em todos os seus controles remotos antes de executá-los. Você poderia fazer isso assim:
+
+$ git fetch --all; git branch -vv
+
+(Puxar)
+
+Embora o [git fetch] comando busque todas as alterações no servidor que você ainda não possui, ele não modificará seu diretório de trabalho. Ele simplesmente obterá os dados para você e permitirá que você mescle você mesmo. No entanto, existe um comando chamado [git pull] que é essencialmente um [git fetch] seguido imediatamente por um [git mergen] a maioria dos casos. Se você tiver uma ramificação de rastreamento configurada como demonstrado na última seção, definindo-a explicitamente ou configurando-a para você pelos comandos clone ou checkout, git pull procurará o servidor e a ramificação que sua ramificação atual está rastreando, buscando a partir desse servidor e em seguida, tente mesclar nesse ramo remoto.
+
+Geralmente, é melhor simplesmente usar os comandos fetche mergeexplicitamente, pois a magia de git pullmuitas vezes pode ser confusa.
+
+
+(Excluindo Ramificações Remotas)
+Suponha que você tenha terminado com uma ramificação remota - digamos que você e seus colaboradores tenham terminado um recurso e o tenham mesclado na masterramificação do seu controle remoto (ou em qualquer ramificação na qual sua linha de código estável esteja). Você pode excluir uma ramificação remota usando a --deleteopção para git push. Se você quiser excluir sua serverfixramificação do servidor, execute o seguinte:
+
+$ git push origin --delete serverfix
+To https://github.com/schacon/simplegit
+ - [deleted]         serverfix
+
+Basicamente tudo isso faz é remover o ponteiro do servidor. O servidor Git geralmente manterá os dados lá por um tempo até que uma coleta de lixo seja executada, por isso, se ele foi excluído acidentalmente, geralmente é fácil recuperá-lo.
+
+
