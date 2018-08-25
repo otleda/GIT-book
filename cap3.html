@@ -1,3 +1,5 @@
+GIT RAMIFICAÇÃO
+
 3.1 [[ Git Branching - Ramos em um Nutshell ]] 
 Quase todos os VCS têm algum tipo de suporte de ramificação. Ramificação significa que você diverge da linha principal de desenvolvimento e continua a trabalhar sem mexer nessa linha principal. Em muitas ferramentas VCS, esse é um processo um pouco caro, exigindo muitas vezes a criação de uma nova cópia do diretório do código-fonte, o que pode levar muito tempo para projetos grandes.
 
@@ -644,3 +646,193 @@ To https://github.com/schacon/simplegit
 Basicamente tudo isso faz é remover o ponteiro do servidor. O servidor Git geralmente manterá os dados lá por um tempo até que uma coleta de lixo seja executada, por isso, se ele foi excluído acidentalmente, geralmente é fácil recuperá-lo.
 
 
+3.6 [[ Git Branching - Rebasing ]]
+
+Rebasing
+No Git, existem duas maneiras principais de integrar as mudanças de um ramo em outro: o mergee o rebase. Nesta seção você aprenderá o que é rebasing, como fazer, por que é uma ferramenta incrível e em quais casos você não vai querer usá-la.
+
+(O Rebase Básico)
+Se você voltar a um exemplo anterior da Mesclagem Básica , poderá ver que você divergiu seu trabalho e fez commits em duas ramificações diferentes.
+
+
+                                [ Figura 35. História divergente simples ]
+
+
+A maneira mais fácil de integrar as ramificações, como já abordamos, é o mergecomando. Ele executa uma mesclagem de três vias entre os dois snapshots de ramificação mais recentes ( C3e C4) e o ancestral comum mais recente dos dois ( C2), criando um novo snapshot (e commit).
+
+
+                            
+                            [Figura 36. Mesclando para integrar o histórico de trabalho divergente]
+
+
+No entanto, existe uma outra maneira: você pode pegar o patch da alteração que foi introduzido C4e reaplicá-lo no topo C3. No Git, isso é chamado de rebasing . Com o rebase comando, você pode pegar todas as alterações que foram confirmadas em uma ramificação e reproduzi-las em outra.
+
+Neste exemplo, você executaria o seguinte:
+
+$ git checkout experiment
+$ git rebase master
+First, rewinding head to replay your work on top of it...
+Applying: added staged command
+
+
+Ele funciona indo para o ancestral comum dos dois ramos (aquele em que você está e o que você está rebaixando), obtendo o diff introduzido por cada commit do branch em que você está, salvando esses diffs para arquivos temporários , redefinindo a ramificação atual para o mesmo commit da ramificação na qual você está sendo reimplantada e, finalmente, aplicando cada alteração de cada vez.
+
+
+                        
+
+                            [Figura 37. Rebasing a alteração introduzida na C4 sobre C3]
+
+
+
+Neste ponto, você pode voltar ao masterramo e fazer uma mesclagem rápida.
+
+$ git checkout master
+$ git merge experiment
+
+
+                                [ Figura 38. Avanço rápido do branch master ]
+
+
+
+Agora, o instantâneo apontado por C4´ é exatamente o mesmo que aquele que foi apontado C5 no exemplo de mesclagem. Não há diferença no produto final da integração, mas o rebasing faz um histórico mais limpo. Se você examinar o log de uma ramificação rebaseada, ela parecerá um histórico linear: parece que todo o trabalho aconteceu em série, mesmo quando originalmente aconteceu em paralelo.
+
+Frequentemente, você fará isso para garantir que seus commits sejam aplicados de forma limpa em um branch remoto - talvez em um projeto para o qual você está tentando contribuir, mas que você não mantém. Nesse caso, você faria o seu trabalho em uma filial e depois realinharia o seu trabalho origin/master quando estivesse pronto para enviar suas correções para o projeto principal. Dessa forma, o mantenedor não precisa fazer nenhum trabalho de integração - apenas um avanço rápido ou uma aplicação limpa.
+
+Observe que o snapshot apontado pelo commit final, se é o último dos commits rebase para um rebase ou o commit final do merge depois de um merge, é o mesmo snapshot - é apenas o histórico que é diferente. As reexibições de reinicialização mudam de uma linha de trabalho para outra na ordem em que foram introduzidas, enquanto a mesclagem pega os pontos de extremidade e os mescla.
+
+(Rebases Mais Interessantes)
+Você também pode ter sua reprodução de rebase em algo diferente do ramo de destino do rebase. Tome uma história como uma história com um ramo de tópico fora de outro ramo de tópico , por exemplo. Você ramificou uma ramificação de tópico ( server) para adicionar alguma funcionalidade do lado do servidor ao seu projeto e fez uma confirmação. Então, você ramificou isso para fazer as alterações no lado do cliente ( client) e comprometeu algumas vezes. Finalmente, você voltou ao seu servidor e fez mais alguns commits.
+
+ 
+                    [ Figura 39. Uma história com um tópico se ramifica de outro ramo de tópico ]
+
+
+Suponha que você decida que deseja mesclar suas alterações do lado do cliente em sua linha principal para uma versão, mas deseja adiar as alterações do lado do servidor até que seja testado ainda mais. Você pode fazer as alterações no cliente que não estão no servidor ( C8e C9) e reproduzi-las em sua master filial usando a [--onto] opção de [git rebase]:
+
+$ git rebase --onto master server client
+
+Isso basicamente diz, “Pegue o client branch, descubra os patches desde que ele divergiu do server branch, e repita esses patches no client branch como se fosse baseado diretamente no master branch.” É um pouco complexo, mas o resultado é bem legal .
+
+ 
+
+                        [Figura 40. Rebasando um ramo de tópico de outro ramo de tópico ]
+
+
+Agora você pode avançar rapidamente sua masterramificação (consulte Avançar rapidamente sua ramificação principal para incluir as alterações na ramificação do cliente ):
+
+$ git checkout master
+$ git merge client
+
+
+                    [ Figura 41. Avançar sua ramificação principal para incluir as mudanças na ramificação do cliente ]
+
+
+Digamos que você decida incluir seu ramo de servidores também. Você pode rebase a ramificação do servidor para a masterramificação sem ter que fazer o check-out primeiro executando git rebase [basebranch] [topicbranch]- o que verifica a ramificação do tópico (neste caso, server) para você e a reproduz na ramificação base ( master):
+
+$ git rebase master server
+
+Isso replays seu servertrabalho no topo do seu mastertrabalho, como mostrado em Rebasing seu ramo do servidor em cima de seu ramo mestre .
+
+Rebasing seu ramo de servidor no topo do seu ramo mestre.
+Figura 42. Rebasando seu ramo de servidor no topo do seu branch master
+Em seguida, você pode avançar rapidamente o branch base ( master):
+
+$ git checkout master
+$ git merge server
+
+Você pode remover os cliente serverramos, porque todo o trabalho é integrado e você não precisa mais deles, deixando a sua história para todo este processo parecendo final comprometer história :
+
+$ git branch -d client
+$ git branch -d server
+
+
+                                    [ Figura 43. Histórico Final de Confirmação ]
+
+
+(Os perigos do rebasing)
+Ahh, mas a felicidade de rebater não é sem suas desvantagens, que podem ser resumidas em uma única linha:
+
+(Não rebaixe os commits que existem fora do seu repositório).
+
+Se você seguir essa diretriz, ficará bem. Se você não o fizer, as pessoas vão te odiar, e você será desprezado por amigos e familiares.
+
+Quando você rebasa coisas, você está abandonando os commits existentes e criando novos commits similares, mas diferentes. Se você empurrar commits para algum lugar e outros puxá-los para baixo e basear o trabalho neles, e então você reescrever esses commits [git rebase] e empurrá-los novamente, seus colaboradores terão que re-mesclar seu trabalho e as coisas ficarão confusas quando você tentar puxar seus commits. trabalhe de volta no seu.
+
+Vejamos um exemplo de como o trabalho de rebasing que você tornou público pode causar problemas. Suponha que você clone de um servidor central e depois faça algum trabalho com isso. Seu histórico de commits é assim:
+
+ 
+                        [ Figura 44. Clonar um repositório e basear algum trabalho nele ]
+
+
+Agora, outra pessoa faz mais trabalhos que incluem uma mesclagem e envia esse trabalho para o servidor central. Você pode obtê-lo e mesclar o novo branch remoto em seu trabalho, tornando seu histórico parecido com isto:
+
+
+                        [ Figura 45. Obtenha mais commits e mescle-os em seu trabalho ]
+
+
+Em seguida, a pessoa que empurrou o trabalho mesclado decide voltar e reformular seu trabalho; eles fazem um [git push --force] para sobrescrever o histórico no servidor. Você então busca desse servidor, derrubando os novos commits.
+
+
+
+                [ Figura 46. Alguém envia commits rebaixados, abandonando os commits nos quais você baseou seu trabalho ]
+
+
+
+Agora vocês dois estão em apuros. Se você fizer um [git pull], criará um commit de mesclagem que inclui as duas linhas do histórico, e o seu repositório ficará assim:
+
+
+
+                        [ Figura 47. Você mescla o mesmo trabalho novamente em uma nova consolidação de mesclagem ]
+
+
+
+Se você executar um git logquando seu histórico for assim, você verá dois commits com o mesmo autor, data e mensagem, o que será confuso. Além disso, se você empurrar esse histórico de volta para o servidor, você reintroduzirá todos os commits com retorno para o servidor central, o que pode confundir ainda mais as pessoas. É bastante seguro assumir que o outro desenvolvedor não quer C4e C6estar na história; é por isso que eles rebateram em primeiro lugar.
+
+(Rebase Quando Você Rebase)
+Se você fazer se encontrar em uma situação como esta, Git tem mais alguma mágica que pode ajudá-lo. Se alguém na força de sua equipe forçar mudanças que substituem o trabalho no qual você baseou o trabalho, seu desafio é descobrir o que é seu e o que foi reescrito.
+
+Acontece que, além da soma de verificação commit SHA-1, o Git também calcula uma soma de verificação baseada apenas no patch introduzido com o commit. Isso é chamado de "patch-id".
+
+Se você puxar para baixo o trabalho que foi reescrito e rebase-lo em cima dos novos commits de seu parceiro, o Git pode frequentemente descobrir com sucesso o que é exclusivamente seu e aplicá-lo de volta ao topo do novo branch.
+
+Por exemplo, no cenário anterior, se em vez de fazer uma mesclagem quando estamos em Alguém empurra rebased compromete, abandonando commits você baseado o seu trabalho em corremos [git rebase teamone/master], Git irá:
+
+. Determine qual trabalho é exclusivo do nosso ramo (C2, C3, C4, C6, C7)
+. Determine quais não são commits de mesclagem (C2, C3, C4)
+. Determine quais não foram reescritos no ramo de destino (apenas C2 e C3, já que C4 é o mesmo patch que C4 ')
+. Aplique os commits no topo da teamone/master
+
+Assim, em vez do resultado que vemos em Você mesclar o mesmo trabalho novamente em um novo commit de mesclagem , acabaríamos com algo mais como Rebase no topo do trabalho de rebase forçado. .
+
+
+
+                        [ Figura 48. Rebase no topo do trabalho de rebase com força forçada. ]
+
+
+
+Isso só funciona se C4 e C4 'que seu parceiro fez são quase exatamente o mesmo patch. Caso contrário, o rebase não será capaz de dizer que é uma duplicata e adicionará outro patch semelhante ao C4 (que provavelmente falhará na aplicação correta, já que as alterações já estarão pelo menos um pouco lá).
+
+Você também pode simplificar isso executando um em [git pull --rebase] vez de um normal [git pull]. Ou você poderia fazê-lo manualmente com um [git fetch] seguido por um [git rebase teamone/master] neste caso.
+
+Se você está usando git pulle quer fazer --rebaseo padrão, você pode definir o pull.rebasevalor de configuração com algo parecido git config --global pull.rebase true.
+
+Se você tratar o rebasing como uma maneira de limpar e trabalhar com commits antes de empurrá-los, e se você apenas rebase commits que nunca estiveram disponíveis publicamente, então você estará bem. Se você rebase os commits que já foram empurrados publicamente, e as pessoas podem ter baseado o trabalho nesses commits, então você pode estar com alguns problemas frustrantes e o desprezo de seus colegas de equipe.
+
+Se você ou um parceiro achar necessário, em algum momento, certifique-se de que todos saibam correr [git pull --rebase] para tentar fazer com que a dor depois disso aconteça um pouco mais simples.
+
+(Rebase vs. Mesclagem)
+Agora que você viu rebasing e fusão em ação, você pode estar se perguntando qual é o melhor. Antes de podermos responder a isso, vamos voltar um pouco e falar sobre o que a história significa.
+
+Um ponto de vista sobre isso é que o histórico de commits do seu repositório é um registro do que realmente aconteceu. É um documento histórico, valioso por si só, e não deve ser adulterado. Deste ângulo, mudar o histórico de commits é quase blasfêmico; você está mentindo sobre o que realmente aconteceu. Então, e se houvesse uma série confusa de commits de mesclagem? Foi assim que aconteceu, e o repositório deve preservar isso para a posteridade.
+
+O ponto de vista oposto é que o histórico de commits é a história de como seu projeto foi feito. Você não publicaria o primeiro rascunho de um livro, e o manual de como manter seu software merece uma edição cuidadosa. Este é o campo que usa ferramentas como rebase e filtro para contar a história da maneira que for melhor para os futuros leitores.
+
+Agora, para a questão de saber se a fusão ou rebasing é melhor: esperamos que você perceba que não é tão simples assim. O Git é uma ferramenta poderosa e permite que você faça muitas coisas para e com sua história, mas cada equipe e cada projeto é diferente. Agora que você sabe como essas duas coisas funcionam, cabe a você decidir qual delas é a melhor para sua situação específica.
+
+Em geral, a maneira de obter o melhor dos dois mundos é reformular as mudanças locais que você fez, mas ainda não compartilhou, antes de empurrá-las para limpar sua história, mas nunca rebase qualquer coisa que você tenha feito em algum lugar.
+
+
+3.7 [[ Ramificação do Git - Resumo ]]
+
+(Resumo)
+Nós cobrimos ramificações e mesclagens básicas no Git. Você deve se sentir confortável criando e mudando para novos ramos, alternando entre filiais e unindo filiais locais. Você também deve poder compartilhar suas ramificações enviando-as para um servidor compartilhado, trabalhando com outras pessoas em filiais compartilhadas e realocando suas filiais antes que elas sejam compartilhadas. Em seguida, abordaremos o que você precisará para executar seu próprio servidor de hospedagem de repositório Git.

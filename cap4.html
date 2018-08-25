@@ -1,0 +1,535 @@
+GIT NO SERVIDOR
+
+4.1 [[ Git no Servidor - Os Protocolos ]]
+
+Neste ponto, você deve ser capaz de fazer a maioria das tarefas do dia-a-dia para as quais você estará usando o Git. No entanto, para fazer qualquer colaboração no Git, você precisará ter um repositório Git remoto. Embora seja tecnicamente possível enviar alterações e extrair alterações de repositórios de indivíduos, isso é desencorajado porque é possível confundir com bastante facilidade o que eles estão trabalhando, caso você não seja cuidadoso. Além disso, você quer que seus colaboradores possam acessar o repositório mesmo se o seu computador estiver offline - ter um repositório comum mais confiável é freqüentemente útil. Portanto, o método preferido para colaborar com alguém é configurar um repositório intermediário ao qual vocês dois têm acesso, e empurrar e extrair isso.
+
+Rodar um servidor Git é bastante simples. Primeiro, você escolhe com quais protocolos deseja se comunicar com o seu servidor. A primeira seção deste capítulo abordará os protocolos disponíveis e os prós e contras de cada um. As próximas seções explicarão algumas configurações típicas que usam esses protocolos e como fazer com que seu servidor funcione com elas. Por último, abordaremos algumas opções hospedadas, se você não se importar de hospedar seu código no servidor de outra pessoa e não quiser passar pelo incômodo de configurar e manter seu próprio servidor.
+
+Se você não tem interesse em executar seu próprio servidor, você pode pular para a última seção do capítulo para ver algumas opções para configurar uma conta hospedada e, em seguida, passar para o próximo capítulo, onde discutimos os vários detalhes do trabalho. em um ambiente de controle de origem distribuído.
+
+Um repositório remoto é geralmente um repositório vazio - um repositório Git que não possui diretório de trabalho. Como o repositório é usado apenas como um ponto de colaboração, não há motivo para ter um instantâneo com check-out no disco; são apenas os dados do Git. Nos termos mais simples, um repositório .gitvazio é o conteúdo do diretório do seu projeto e nada mais.
+
+( Os protocolos )
+O Git pode usar quatro protocolos principais para transferir dados: Local, HTTP, Secure Shell (SSH) e Git. Aqui vamos discutir o que são e em quais circunstâncias básicas você gostaria de usá-las (ou não).
+
+(Protocolo Local)
+O mais básico é o protocolo Local , no qual o repositório remoto está em outro diretório no disco. Isso geralmente é usado se todos da sua equipe tiverem acesso a um sistema de arquivos compartilhado, como uma montagem NFS, ou no caso menos provável de que todos efetuem login no mesmo computador. Este último não seria ideal, porque todas as suas instâncias de repositório de código residiriam no mesmo computador, tornando muito mais provável uma perda catastrófica.
+
+Se você tiver um sistema de arquivos montado compartilhado, poderá clonar, enviar e extrair de um repositório baseado em arquivo local. Para clonar um repositório como este ou adicionar um como um remoto a um projeto existente, use o caminho para o repositório como o URL. Por exemplo, para clonar um repositório local, você pode executar algo assim:
+
+$ git clone /srv/git/project.git
+
+Ou você pode fazer isso:
+
+$ git clone file:///srv/git/project.git
+
+O Git opera de forma ligeiramente diferente se você especificar explicitamente file://no início do URL. Se você apenas especificar o caminho, o Git tentará usar hardlinks ou copiar diretamente os arquivos necessários. Se você especificar file://, o Git aciona os processos que normalmente usa para transferir dados através de uma rede, o que geralmente é um método muito menos eficiente de transferir os dados. O principal motivo para especificar o file://prefixo é se você deseja uma cópia limpa do repositório com referências irrelevantes ou objetos deixados de fora - geralmente após uma importação de outro sistema de controle de versão ou algo semelhante (consulte Git Internals para tarefas de manutenção). Vamos usar o caminho normal aqui porque isso é quase sempre mais rápido.
+
+Para adicionar um repositório local a um projeto Git existente, você pode executar algo assim:
+
+$ git remote add local_proj /srv/git/project.git
+
+Então, você pode empurrar e puxar desse controle remoto como se estivesse fazendo isso em uma rede.
+
+(Os prós)
+As vantagens dos repositórios baseados em arquivos são que elas são simples e usam permissões de arquivos e acesso à rede existentes. Se você já tem um sistema de arquivos compartilhado ao qual toda a sua equipe tem acesso, é muito fácil configurar um repositório. Você coloca a cópia do repositório nua em algum lugar em que todos tenham acesso compartilhado e defina as permissões de leitura / gravação como faria para qualquer outro diretório compartilhado. Discutiremos como exportar uma cópia do repositório nua para essa finalidade no Git no servidor .
+
+Essa também é uma boa opção para pegar rapidamente o trabalho do repositório de trabalho de outra pessoa. Se você e um colega de trabalho estiverem trabalhando no mesmo projeto e quiserem que você verifique alguma coisa, executar um comando como esse [git pull /home/john/project] geralmente é mais fácil do que o envio para um servidor remoto e a sua desativação.
+
+(Os contras)
+As desvantagens desse método são que o acesso compartilhado geralmente é mais difícil de configurar e alcançar em vários locais do que o acesso básico à rede. Se você quiser empurrar a partir do seu laptop quando estiver em casa, precisará montar o disco remoto, o que pode ser difícil e lento em comparação ao acesso baseado em rede.
+
+É importante mencionar que essa não é necessariamente a opção mais rápida se você estiver usando uma montagem compartilhada de algum tipo. Um repositório local é rápido somente se você tiver acesso rápido aos dados. Um repositório no NFS é geralmente mais lento que o repositório sobre SSH no mesmo servidor, permitindo que o Git execute os discos locais em cada sistema.
+
+Finalmente, este protocolo não protege o repositório contra danos acidentais. Todo usuário tem acesso shell completo ao diretório "remoto", e não há nada que os impeça de alterar ou remover arquivos internos do Git e corromper o repositório.
+
+(Os protocolos HTTP)
+O Git pode se comunicar através de HTTP em dois modos diferentes. Antes do Git 1.6.6, havia apenas uma maneira de fazer isso, que era muito simples e geralmente somente leitura. Na versão 1.6.6 foi introduzido um novo e mais inteligente protocolo que envolveu o Git ser capaz de negociar inteligentemente a transferência de dados de uma maneira similar a como faz no SSH. Nos últimos anos, esse novo protocolo HTTP se tornou muito popular, já que é mais simples para o usuário e mais inteligente sobre como ele se comunica. A versão mais recente é muitas vezes referida como o protocolo HTTP "inteligente" e a forma mais antiga como "Dumb" HTTP. Nós cobriremos o novo protocolo HTTP "inteligente" primeiro.
+
+(HTTP inteligente)
+O protocolo HTTP “inteligente” opera de forma muito semelhante aos protocolos SSH ou Git, mas é executado em portas HTTP / S padrão e pode usar vários mecanismos de autenticação HTTP, o que significa que é mais fácil para o usuário do que SSH, já que você pode usar nomes de usuário autenticação de senha em vez de precisar configurar as chaves SSH.
+
+Provavelmente, ele se tornou a maneira mais popular de usar o Git agora, já que ele pode ser configurado para servir anonimamente, como o git:// protocolo, e também pode ser ativado com autenticação e criptografia, como o protocolo SSH. Em vez de precisar configurar URLs diferentes para essas coisas, agora você pode usar um único URL para ambos. Se você tentar enviar e o repositório precisar de autenticação (o que normalmente deveria), o servidor pode solicitar um nome de usuário e senha. O mesmo vale para o acesso de leitura.
+
+Na verdade, para serviços como o GitHub, a URL usada para exibir o repositório on-line (por exemplo, " https://github.com/schacon/simplegit ") é o mesmo URL que você pode usar para clonar e, se tiver acesso , empurre.
+
+(HTTP Dumb)
+Se o servidor não responder com um serviço inteligente Git HTTP, o cliente Git tentará retornar ao protocolo HTTP simplificado. O protocolo Dumb espera que o repositório Git simples seja exibido como arquivos normais do servidor da web. A beleza do protocolo HTTP Dumb é a simplicidade de configurá-lo. Basicamente, tudo o que você precisa fazer é colocar um repositório Git puro sob sua raiz de documento HTTP e configurar um post-updategancho específico , e pronto (veja Git Hooks ). Nesse ponto, qualquer pessoa que possa acessar o servidor da Web sob o qual você coloca o repositório também poderá clonar seu repositório. Para permitir acesso de leitura ao seu repositório via HTTP, faça algo assim:
+
+$ cd /var/www/htdocs/
+$ git clone --bare /path/to/git_project gitproject.git
+$ cd gitproject.git
+$ mv hooks/post-update.sample hooks/post-update
+$ chmod a+x hooks/post-update
+
+Isso é tudo. O post-updategancho que vem com o Git por padrão executa o comando ( git update-server-info) apropriado para fazer com que a busca e clonagem HTTP funcionem corretamente. Este comando é executado quando você empurra para este repositório (por SSH talvez); então, outras pessoas podem clonar através de algo como
+
+$ git clone https://example.com/gitproject.git
+
+Neste caso em particular, estamos usando o /var/www/htdocs caminho que é comum para as configurações do Apache, mas você pode usar qualquer servidor web estático - basta colocar o repositório vazio em seu caminho. Os dados do Git são servidos como arquivos estáticos básicos (veja Git Internals para detalhes sobre exatamente como é servido).
+
+Geralmente, você poderia optar por executar um servidor Smart HTTP de leitura / gravação ou simplesmente ter os arquivos acessíveis como somente leitura da maneira Mudo. É raro executar uma mistura dos dois serviços.
+
+(Os prós)
+Vamos nos concentrar nas vantagens da versão inteligente do protocolo HTTP.
+
+A simplicidade de ter um único URL para todos os tipos de acesso e solicitar o servidor somente quando a autenticação é necessária torna as coisas muito fáceis para o usuário final. Ser capaz de autenticar com um nome de usuário e senha também é uma grande vantagem sobre o SSH, já que os usuários não precisam gerar chaves SSH localmente e carregar sua chave pública no servidor antes de interagir com ele. Para usuários menos sofisticados ou usuários em sistemas nos quais o SSH é menos comum, essa é uma grande vantagem na usabilidade. É também um protocolo muito rápido e eficiente, semelhante ao SSH.
+
+Você também pode servir seus repositórios somente leitura via HTTPS, o que significa que você pode criptografar a transferência de conteúdo; ou você pode ir tão longe a ponto de fazer os clientes usarem certificados SSL assinados específicos.
+
+Outra coisa interessante é que HTTP / S são protocolos tão comumente usados ​​que os firewalls corporativos são frequentemente configurados para permitir o tráfego através dessas portas.
+
+(Os contras)
+Git over HTTP / S pode ser um pouco mais complicado de configurar comparado ao SSH em alguns servidores. Além disso, há muito pouca vantagem que outros protocolos têm sobre o protocolo HTTP “inteligente” para servir o Git.
+
+Se você estiver usando HTTP para push autenticado, fornecer suas credenciais às vezes é mais complicado do que usar chaves sobre SSH. No entanto, existem várias ferramentas de armazenamento em cache de credenciais que você pode usar, incluindo o acesso ao Keychain no OSX e o Credential Manager no Windows, para tornar isso bastante indolor. Leia Credential Storage para ver como configurar o cache seguro de senha HTTP em seu sistema.
+
+(O protocolo SSH)
+Um protocolo de transporte comum para o Git quando a auto-hospedagem é sobre o SSH. Isso ocorre porque o acesso SSH aos servidores já está configurado na maioria dos locais - e se não for, é fácil de fazer. O SSH também é um protocolo de rede autenticado; e porque é onipresente, geralmente é fácil de configurar e usar.
+
+Para clonar um repositório Git sobre SSH, você pode especificar ssh: // URL assim:
+
+$ git clone ssh://user@server/project.git
+
+Ou você pode usar a sintaxe parecida com scp mais curta para o protocolo SSH:
+
+$ git clone user@server:project.git
+
+Você também não pode especificar um usuário, e o Git assume o usuário com o qual você está atualmente logado.
+
+(Os prós)
+Os profissionais de usar o SSH são muitos. Primeiro, o SSH é relativamente fácil de configurar - os daemons SSH são comuns, muitos administradores de rede têm experiência com eles e muitas distribuições de SO são configuradas com eles ou possuem ferramentas para gerenciá-los. Em seguida, o acesso por SSH é seguro - toda a transferência de dados é criptografada e autenticada. Por último, como os protocolos HTTP / S, Git e Local, o SSH é eficiente, tornando os dados tão compactos quanto possível antes de transferi-los.
+
+(Os contras)
+O aspecto negativo do SSH é que você não pode servir o acesso anônimo do seu repositório sobre ele. As pessoas devem ter acesso à sua máquina via SSH para acessá-la, mesmo em uma capacidade somente de leitura, o que não torna o acesso SSH propício para projetos de código aberto. Se você estiver usando apenas dentro da sua rede corporativa, o SSH pode ser o único protocolo com o qual você precisa lidar. Se você quiser permitir o acesso anônimo somente leitura aos seus projetos e também quiser usar o SSH, você terá que configurar o SSH para o envio, mas outra coisa para os outros buscarem.
+
+(O protocolo Git)
+Em seguida é o protocolo Git. Este é um daemon especial que vem empacotado com o Git; ele escuta em uma porta dedicada (9418) que fornece um serviço semelhante ao protocolo SSH, mas com absolutamente nenhuma autenticação. Para que um repositório seja servido sobre o protocolo Git, você deve criar o git-daemon-export-okarquivo - o daemon não servirá um repositório sem esse arquivo - mas, além disso, não há segurança. O repositório Git está disponível para todos clonarem ou não. Isso significa que geralmente não há nenhum empurrão sobre este protocolo. Você pode ativar o acesso push; mas, devido à falta de autenticação, se você ativar o acesso por push, qualquer pessoa na Internet que encontrar a URL do seu projeto poderá enviar para o seu projeto. Basta dizer que isso é raro.
+
+(Os prós)
+O protocolo Git é frequentemente o protocolo de transferência de rede mais rápido disponível. Se você está servindo muito tráfego para um projeto público ou servindo um projeto muito grande que não requer autenticação de usuário para acesso de leitura, é provável que você deseje configurar um daemon do Git para servir seu projeto. Ele usa o mesmo mecanismo de transferência de dados que o protocolo SSH, mas sem a sobrecarga de criptografia e autenticação.
+
+(Os contras)
+A desvantagem do protocolo Git é a falta de autenticação. Geralmente, não é desejável que o protocolo Git seja o único acesso ao seu projeto. Geralmente, você o emparelhará com acesso SSH ou HTTPS para os poucos desenvolvedores que tiverem acesso push (gravação) e que todos os outros usuários usem git://para acesso somente leitura. Também é provavelmente o protocolo mais difícil de configurar. Ele deve executar seu próprio daemon, que requer xinetdconfiguração ou algo semelhante, que nem sempre é um passeio no parque. Também requer acesso de firewall à porta 9418, que não é uma porta padrão que os firewalls corporativos sempre permitem. Por trás de grandes firewalls corporativos, essa porta obscura é comumente bloqueada.
+
+
+4.2 [[ Git no servidor - Obtendo o Git em um servidor ]]
+
+Obtendo o Git em um servidor
+
+Agora vamos cobrir a configuração de um serviço Git executando esses protocolos em seu próprio servidor.
+
+|Nota
+Aqui estaremos demonstrando os comandos e as etapas necessárias para fazer instalações básicas e simplificadas em um servidor baseado em Linux, embora também seja possível executar esses serviços em servidores Mac ou Windows. Na verdade, a configuração de um servidor de produção dentro de sua infraestrutura certamente acarretará diferenças nas medidas de segurança ou nas ferramentas do sistema operacional, mas esperamos que isso lhe dê uma ideia geral do que está envolvido.
+
+Para configurar inicialmente qualquer servidor Git, você precisa exportar um repositório existente para um novo repositório vazio - um repositório que não contém um diretório de trabalho. Isso geralmente é simples de se fazer. Para clonar seu repositório para criar um novo repositório vazio, você executa o comando [clone com a --bare] opção. Por convenção, os diretórios do repositório bare terminam .git, assim:
+
+$ git clone --bare my_project my_project.git
+Cloning into bare repository 'my_project.git'...
+done.
+
+Agora você deve ter uma cópia dos dados do diretório Git em seu my_project.gitdiretório.
+
+Isto é aproximadamente equivalente a algo como
+
+$ cp -Rf my_project/.git my_project.git
+
+Existem algumas pequenas diferenças no arquivo de configuração; mas para o seu propósito, isso está perto da mesma coisa. Ele pega o repositório Git sozinho, sem um diretório de trabalho, e cria um diretório especificamente para ele sozinho.
+
+(Colocando o Repositório Desencapado em um Servidor)
+Agora que você tem uma cópia do seu repositório, tudo o que você precisa fazer é colocá-lo em um servidor e configurar seus protocolos. Vamos supor que você configurou um servidor chamado para o git.example.com qual você tem acesso SSH e deseja armazenar todos os seus repositórios Git no /srv/gitdiretório. Supondo que /srv/git exista nesse servidor, você pode configurar seu novo repositório copiando o seu repositório nu sobre:
+
+$ scp -r my_project.git user@git.example.com:/srv/git
+
+Neste ponto, outros usuários que têm acesso SSH ao mesmo servidor que possui acesso de leitura ao
+/srv/git diretório podem clonar seu repositório executando
+
+$ git clone user@git.example.com:/srv/git/my_project.git
+
+Se um usuário SSH entrar em um servidor e tiver acesso de gravação ao /srv/git/my_project.gitdiretório, ele também terá automaticamente o acesso por push.
+
+O Git adicionará automaticamente as permissões de gravação do grupo a um repositório, se você executar o [git init] comando com [a --share] dopção.
+
+$ ssh user@git.example.com
+$ cd /srv/git/my_project.git
+$ git init --bare --shared
+
+Você vê como é fácil pegar um repositório Git, criar uma versão simples e colocá-lo em um servidor ao qual você e seus colaboradores tenham acesso SSH. Agora você está pronto para colaborar no mesmo projeto.
+
+É importante notar que isso é literalmente tudo que você precisa para executar um servidor Git útil ao qual várias pessoas têm acesso - basta adicionar contas compatíveis com SSH em um servidor e colocar um repositório vazio em algum lugar que todos esses usuários tenham lido e escrito. acesso a. Você está pronto para ir - nada mais necessário.
+
+Nas próximas seções, você verá como expandir para configurações mais sofisticadas. Essa discussão incluirá não ter que criar contas de usuário para cada usuário, adicionar acesso público de leitura a repositórios, configurar interfaces de usuário da web e muito mais. No entanto, lembre-se de que, para colaborar com algumas pessoas em um projeto privado, tudo o que você precisa é de um servidor SSH e de um repositório vazio.
+
+(Configurações pequenas)
+Se você é uma pequena roupa ou está apenas experimentando o Git em sua organização e tem apenas alguns desenvolvedores, as coisas podem ser simples para você. Um dos aspectos mais complicados da configuração de um servidor Git é o gerenciamento de usuários. Se você quiser que alguns repositórios sejam somente leitura para determinados usuários e que leiam / escrevam para outras pessoas, o acesso e as permissões podem ser um pouco mais difíceis de organizar.
+
+(Acesso SSH)
+Se você tem um servidor para o qual todos os seus desenvolvedores já possuem acesso SSH, geralmente é mais fácil configurar o seu primeiro repositório lá, porque você tem que fazer quase nenhum trabalho (como abordamos na última seção). Se você deseja permissões de tipo de controle de acesso mais complexas em seus repositórios, você pode manipulá-las com as permissões normais do sistema de arquivos do sistema operacional que seu servidor executa.
+
+Se você deseja colocar seus repositórios em um servidor que não possui contas para todos em sua equipe e que deseja ter acesso de gravação, configure o acesso SSH para eles. Assumimos que, se você tiver um servidor com o qual fazer isso, você já tem um servidor SSH instalado e é assim que você está acessando o servidor.
+
+Existem algumas maneiras pelas quais você pode dar acesso a todos em sua equipe. A primeira é configurar contas para todos, o que é simples, mas pode ser complicado. Você pode não querer executar addusere definir senhas temporárias para cada usuário.
+
+Um segundo método é criar um único usuário git na máquina, pedir a cada usuário que tenha acesso de gravação para enviar uma chave pública SSH e adicionar essa chave ao ~/.ssh/authorized_keysarquivo do seu novo usuário git . Nesse ponto, todos poderão acessar a máquina através do usuário git . Isso não afeta os dados de confirmação de forma alguma - o usuário do SSH que você conecta não afeta os commits que você gravou.
+
+Outra maneira de fazer isso é ter seu servidor SSH autenticado em um servidor LDAP ou alguma outra fonte de autenticação centralizada que você já tenha configurado. Desde que cada usuário possa obter acesso ao shell na máquina, qualquer mecanismo de autenticação SSH em que você possa pensar deverá funcionar.
+
+
+4.3 [[ Git no servidor - gerando sua chave pública SSH ]] 
+
+Gerando sua chave pública SSH
+Dito isto, muitos servidores Git autenticam usando chaves públicas SSH. Para fornecer uma chave pública, cada usuário em seu sistema deve gerar um, caso ainda não tenha um. Este processo é semelhante em todos os sistemas operacionais. Primeiro, você deve verificar se você ainda não tem uma chave. Por padrão, as chaves SSH de um usuário são armazenadas no [~/.ssh ]diretório desse usuário . Você pode facilmente verificar se você já tem uma chave acessando o diretório e listando o conteúdo:
+
+$ cd ~/.ssh
+$ ls
+authorized_keys2  id_dsa       known_hosts
+config            id_dsa.pub
+
+Você está procurando por um par de arquivos com o nome de id_dsaou id_rsae um arquivo correspondente com uma .pubextensão. O .pubarquivo é sua chave pública e o outro arquivo é sua chave privada. Se você não possui esses arquivos (ou nem sequer tem um .sshdiretório), você pode criá-los executando um programa chamado [ssh-keygen], que é fornecido com o pacote SSH em sistemas Linux / Mac e vem com o Git para Windows:
+
+$ ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/schacon/.ssh/id_rsa):
+Created directory '/home/schacon/.ssh'.
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /home/schacon/.ssh/id_rsa.
+Your public key has been saved in /home/schacon/.ssh/id_rsa.pub.
+The key fingerprint is:
+d0:82:24:8e:d7:f1:bb:9b:33:53:96:93:49:da:9b:e3 schacon@mylaptop.local
+
+Primeiro, ele confirma onde você deseja salvar a chave ( .ssh/id_rsa) e, em seguida, pede duas vezes uma frase secreta, que você pode deixar em branco se não quiser digitar uma senha ao usar a chave.
+
+Agora, cada usuário que faz isso tem que enviar sua chave pública para você ou quem está administrando o servidor Git (supondo que você esteja usando uma configuração de servidor SSH que requer chaves públicas). Tudo o que eles precisam fazer é copiar o conteúdo do [.pub] arquivo e enviá-lo por e-mail. As chaves públicas são semelhantes a isto:
+
+$ cat ~/.ssh/id_rsa.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAklOUpkDHrfHY17SbrmTIpNLTGK9Tjom/BWDSU
+GPl+nafzlHDTYW7hdI4yZ5ew18JH4JW9jbhUFrviQzM7xlELEVf4h9lFX5QVkbPppSwg0cda3
+Pbv7kOdJ/MTyBlWXFCR+HAo3FXRitBqxiX1nKhXpHAZsMciLq8V6RjsNAQwdsdMFvSlVK/7XA
+t3FaoJoAsncM1Q9x5+3V0Ww68/eIFmb1zuUFljQJKprrX88XypNDvjYNby6vw/Pb0rwert/En
+mZ+AW4OZPnTPI89ZPmVMLuayrD2cE86Z/il8b+gw3r3+1nKatmIkjn2so1d01QraTlMqVSsbx
+NrRFi9wrf+M7Q== schacon@mylaptop.local
+Para um tutorial mais aprofundado sobre como criar uma chave SSH em vários sistemas operacionais, consulte o guia do GitHub sobre chaves SSH em https://help.github.com/articles/generating-ssh-keys .
+
+
+4.4 [[ Git no servidor - Configurando o servidor ]]
+
+Configurando o servidor
+Vamos percorrer a configuração do acesso SSH no lado do servidor. Neste exemplo, você usará o [authorized_keys] método para autenticar seus usuários. Nós também assumimos que você está executando uma distribuição Linux padrão como o Ubuntu. Primeiro, você cria um git usuário e um .ssh diretório para esse usuário.
+
+$ sudo adduser git
+$ su git
+$ cd
+$ mkdir .ssh && chmod 700 .ssh
+$ touch .ssh/authorized_keys && chmod 600 .ssh/authorized_keys
+
+Em seguida, você precisa adicionar algumas chaves públicas SSH do desenvolvedor ao authorized_keysarquivo para o gitusuário. Vamos supor que você tenha algumas chaves públicas confiáveis ​​e as salvou em arquivos temporários. Novamente, as chaves públicas parecem com algo assim:
+
+$ cat /tmp/id_rsa.john.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCB007n/ww+ouN4gSLKssMxXnBOvf9LGt4L
+ojG6rs6hPB09j9R/T17/x4lhJA0F3FR1rP6kYBRsWj2aThGw6HXLm9/5zytK6Ztg3RPKK+4k
+Yjh6541NYsnEAZuXz0jTTyAUfrtU3Z5E003C4oxOj6H0rfIF1kKI9MAQLMdpGW1GYEIgS9Ez
+Sdfd8AcCIicTDWbqLAcU4UpkaX8KyGlLwsNuuGztobF8m72ALC/nLF6JLtPofwFBlgc+myiv
+O7TCUSBdLQlgMVOFq1I2uPWQOkOWQAHukEOmfjy2jctxSDBQ220ymjaNsHT4kgtZg2AYYgPq
+dAv8JggJICUvax2T9va5 gsg-keypair
+
+Você acabou de anexá-los ao arquivo gitdo usuário authorized_keysem seu .sshdiretório:
+
+$ cat /tmp/id_rsa.john.pub >> ~/.ssh/authorized_keys
+$ cat /tmp/id_rsa.josie.pub >> ~/.ssh/authorized_keys
+$ cat /tmp/id_rsa.jessica.pub >> ~/.ssh/authorized_keys
+
+Agora, você pode configurar um repositório vazio para eles, executando git initcom a --bareopção, que inicializa o repositório sem um diretório de trabalho:
+
+$ cd /srv/git
+$ mkdir project.git
+$ cd project.git
+$ git init --bare
+Initialized empty Git repository in /srv/git/project.git/
+
+Então, John, Josie ou Jessica podem empurrar a primeira versão de seu projeto para esse repositório, adicionando-o como um controle remoto e empurrando para cima uma ramificação. Observe que alguém deve entrar na máquina e criar um repositório vazio toda vez que você quiser adicionar um projeto. Vamos usar [gitserver] como o nome do host do servidor no qual você configurou seu git usuário e repositório. Se você estiver executando-o internamente, e você configurar o DNS para gitserverapontar para esse servidor, então você pode usar os comandos praticamente como estão (assumindo que myprojecté um projeto existente com arquivos nele):
+
+# on John's computer
+$ cd myproject
+$ git init
+$ git add .
+$ git commit -m 'initial commit'
+$ git remote add origin git@gitserver:/srv/git/project.git
+$ git push origin master
+
+Neste ponto, os outros podem cloná-lo e empurrar as alterações de volta com a mesma facilidade:
+
+$ git clone git@gitserver:/srv/git/project.git
+$ cd project
+$ vim README
+$ git commit -am 'fix for the README file'
+$ git push origin master
+
+Com esse método, você pode rapidamente colocar em execução um servidor Git de leitura / gravação para um punhado de desenvolvedores.
+
+Você deve observar que atualmente todos esses usuários também podem efetuar login no servidor e obter um shell como git usuário. Se você quiser restringir isso, você terá que mudar o shell para outra coisa no [passwd] arquivo.
+
+Você pode facilmente restringir o gitusuário a somente fazer atividades do Git com uma ferramenta de shell limitada chamada git-shellque vem com o Git. Se você definir isso como o gitshell de login do usuário, o gitusuário não poderá ter acesso normal ao seu servidor. Para usar isso, especifique em git-shellvez de bash ou csh para o shell de login do seu usuário. Para fazer isso, você deve primeiro adicionar [git-shell] a [/etc/shells] se não estiver lá:
+
+$ cat /etc/shells   # see if `git-shell` is already in there.  If not...
+$ which git-shell   # make sure git-shell is installed on your system.
+$ sudo vim /etc/shells  # and add the path to git-shell from last command
+
+Agora você pode editar o shell para um usuário usando [chsh <username>]:
+
+$ sudo chsh git  # and enter the path to git-shell, usually: /usr/bin/git-shell
+
+Agora, o git usuário só pode usar a conexão SSH para empurrar e puxar repositórios Git e não pode entrar na máquina. Se você tentar, verá uma rejeição de login assim:
+
+$ ssh git@gitserver
+fatal: Interactive git shell is not enabled.
+hint: ~/git-shell-commands should exist and have read and execute access.
+Connection to gitserver closed.
+
+Agora os comandos de rede do Git ainda funcionarão bem, mas os usuários não poderão obter um shell. Como os estados de saída, você também pode configurar um diretório no diretório base do gitusuário que personaliza o git-shellcomando um pouco. Por exemplo, você pode restringir os comandos do Git que o servidor aceitará ou você pode personalizar a mensagem que os usuários vêem se eles tentarem SSH assim. Corra [git help shell] para mais informações sobre como personalizar o shell.
+
+
+4.5 [[ Git no servidor - Git Daemon ]]
+
+Git Daemon
+Em seguida, configuraremos um daemon servindo repositórios sobre o protocolo "Git". Essa é uma opção comum para acesso rápido e não autenticado aos seus dados do Git. Lembre-se de que, como não é um serviço autenticado, tudo o que você publica nesse protocolo é público em sua rede.
+
+Se você estiver executando isso em um servidor fora do seu firewall, ele só deve ser usado para projetos que são publicamente visíveis para o mundo. Se o servidor em que você está executando estiver dentro do firewall, você poderá usá-lo para projetos em que um grande número de pessoas ou computadores (integração contínua ou servidores de compilação) tenham acesso somente leitura, quando você não quiser ter para adicionar uma chave SSH para cada um.
+
+Em qualquer caso, o protocolo Git é relativamente fácil de configurar. Basicamente, você precisa executar este comando de uma maneira daemonizada:
+
+$ git daemon --reuseaddr --base-path=/srv/git/ /srv/git/
+
+[--reuseaddr] permite que o servidor reinicie sem esperar que as conexões antigas [--base-path] tenham tempo limite, a opção permite que as pessoas clonem projetos sem especificar o caminho inteiro e o caminho no final informa ao daemon do Git onde procurar repositórios para exportar. Se você estiver executando um firewall, também precisará fazer um furo na porta 9418 na caixa em que está configurando.
+
+Você pode daemonizar esse processo de várias maneiras, dependendo do sistema operacional em execução. Em uma máquina Ubuntu, você pode usar um script Upstart. Então, no seguinte arquivo
+
+/etc/init/local-git-daemon.conf
+
+você coloca esse script:
+
+start on startup
+stop on shutdown
+exec /usr/bin/git daemon \
+    --user=git --group=git \
+    --reuseaddr \
+    --base-path=/srv/git/ \
+    /srv/git/
+respawn
+
+Por razões de segurança, é altamente recomendável que este daemon seja executado como um usuário com permissões somente leitura para os repositórios - você pode facilmente fazer isso criando um novo usuário git-ro e executando o daemon como eles. Por uma questão de simplicidade, vamos simplesmente executá-lo como o mesmo usuário git que [git-shell] está sendo executado.
+
+Quando você reiniciar sua máquina, seu daemon do Git iniciará automaticamente e reaparecerá se ela cair. Para fazê-lo funcionar sem ter que reiniciar, você pode executar isto:
+
+$ initctl start local-git-daemon
+
+Em outros sistemas, você pode querer usar xinetd, um script em seu [sysvinit] sistema, ou qualquer outra coisa - contanto que você obtenha aquele comando daemonizado e assistido de alguma forma.
+
+Em seguida, você deve informar ao Git quais repositórios permitem o acesso não autenticado baseado no servidor Git. Você pode fazer isso em cada repositório, criando um arquivo chamado [git-daemon-export-ok].
+
+$ cd /path/to/project.git
+$ touch git-daemon-export-ok
+A presença desse arquivo informa ao Git que não há problema em veicular este projeto sem autenticação.
+
+
+4.6 [[ Git no servidor - HTTP inteligente ]]
+
+HTTP inteligente
+Agora, temos acesso autenticado por meio de SSH e acesso não autenticado [git://], mas também há um protocolo que pode fazer as duas coisas ao mesmo tempo. Configurar o Smart HTTP é basicamente apenas habilitar um script CGI que é fornecido com o Git chamado [git-http-backend] no servidor. Este CGI lerá o caminho e os cabeçalhos enviados por um git fetchou git pushpara um URL HTTP e determinará se o cliente pode se comunicar por HTTP (o que é verdadeiro para qualquer cliente desde a versão 1.6.6). Se o CGI perceber que o cliente é inteligente, ele se comunicará de maneira inteligente com ele, caso contrário, voltará ao comportamento burro (portanto, é compatível com versões anteriores para leituras com clientes mais antigos).
+
+Vamos percorrer uma configuração muito básica. Vamos configurar isso com o Apache como o servidor CGI. Se você não tiver a configuração do Apache, você pode fazê-lo em uma caixa do Linux com algo parecido com isto:
+
+$ sudo apt-get install apache2 apache2-utils
+$ a2enmod cgi alias env rewrite
+
+Isso também permite que o [mod_cgi], [mod_alias], [mod_env], e [mod_rewrite] módulos, que são todos necessários para que isso funcione corretamente.
+
+Você também precisará configurar o grupo de usuários Unix dos /srv/gitdiretórios para www-dataque seu servidor da Web possa ler e acessar os repositórios, porque a instância do Apache executando o script CGI (por padrão) estará sendo executada como esse usuário:
+
+$ chgrp -R www-data /srv/git
+
+Em seguida, precisamos adicionar algumas coisas à configuração do Apache para executar [git-http-backend] o manipulador de qualquer coisa que [/git] esteja entrando no caminho do seu servidor da web.
+
+SetEnv GIT_PROJECT_ROOT /srv/git
+SetEnv GIT_HTTP_EXPORT_ALL
+ScriptAlias /git/ /usr/lib/git-core/git-http-backend/
+
+Se você deixar de fora GIT_HTTP_EXPORT_ALL a variável de ambiente, então o Git servirá apenas para clientes não autenticados os repositórios com o git-daemon-export-okarquivo neles, assim como o daemon do Git.
+
+Finalmente, você vai querer dizer ao Apache para permitir pedidos git-http-backende fazer com que as gravações sejam autenticadas de alguma forma, possivelmente com um bloco Auth como este:
+
+RewriteEngine On
+RewriteCond %{QUERY_STRING} service=git-receive-pack [OR]
+RewriteCond %{REQUEST_URI} /git-receive-pack$
+RewriteRule ^/git/ - [E=AUTHREQUIRED]
+
+<Files "git-http-backend">
+    AuthType Basic
+    AuthName "Git Access"
+    AuthUserFile /srv/git/.htpasswd
+    Require valid-user
+    Order deny,allow
+    Deny from env=AUTHREQUIRED
+    Satisfy any
+</Files>
+
+Isso exigirá que você crie um .htpasswdarquivo contendo as senhas de todos os usuários válidos. Aqui está um exemplo de adicionar um usuário “schacon” ao arquivo:
+
+$ htpasswd -c /srv/git/.htpasswd schacon
+
+Existem várias maneiras de fazer com que o Apache autentique usuários, você terá que escolher e implementar um deles. Este é apenas o exemplo mais simples que conseguimos. Você também certamente desejará configurá-lo sobre SSL, para que todos esses dados sejam criptografados.
+
+Nós não queremos ir muito longe no buraco dos detalhes de configuração do Apache, já que você pode estar usando um servidor diferente ou ter diferentes necessidades de autenticação. A idéia é que o Git vem com um CGI chamado [git-http-backend] que quando invocado fará toda a negociação para enviar e receber dados via HTTP. Ele não implementa nenhuma autenticação em si, mas pode ser facilmente controlado na camada do servidor da Web que o invoca. Você pode fazer isso com praticamente qualquer servidor da Web compatível com CGI, então escolha aquele que você conhece melhor.
+
+|Nota
+Para obter mais informações sobre como configurar a autenticação no Apache, confira os documentos do Apache aqui: http://httpd.apache.org/docs/current/howto/auth.html
+
+4.7 [[ Git no servidor - GitWeb ]]
+
+GitWeb
+Agora que você tem acesso básico de leitura / gravação e somente leitura ao seu projeto, você pode querer configurar um visualizador simples baseado na web. O Git vem com um script CGI chamado GitWeb que às vezes é usado para isso.
+
+
+                
+                [Figura 49. A interface do usuário baseada na web do GitWeb.]
+
+
+Se você quiser conferir como o GitWeb seria para o seu projeto, o Git vem com um comando para iniciar uma instância temporária se você tiver um servidor leve no seu sistema como [lighttpd] ou [webrick]. Em máquinas Linux, lighttpd muitas vezes é instalado, então você pode ser capaz de executá-lo digitando git [instaweb] no diretório do projeto. Se você estiver executando um Mac, o Leopard vem pré-instalado com o Ruby, então webrickpode ser sua melhor aposta. Para começar instawebcom um manipulador não-lighttpd, você pode executá-lo com a [--httpd] opção.
+
+$ git instaweb --httpd=webrick
+[2009-02-21 10:02:21] INFO  WEBrick 1.3.1
+[2009-02-21 10:02:21] INFO  ruby 1.8.6 (2008-03-03) [universal-darwin9.0]
+
+Isso inicia um servidor HTTPD na porta 1234 e, em seguida, inicia automaticamente um navegador da Web que é aberto nessa página. É muito fácil da sua parte. Quando estiver pronto e quiser desligar o servidor, você poderá executar o mesmo comando com a [--stop] opção:
+
+$ git instaweb --httpd=webrick --stop
+
+Se você deseja executar a interface da Web em um servidor o tempo todo para sua equipe ou para um projeto de software livre que está hospedando, será necessário configurar o script CGI para ser atendido por seu servidor da Web normal. Algumas distribuições Linux têm um gitweb pacote que você pode instalar via aptou yum, então você pode tentar primeiro. Vamos percorrer a instalação do GitWeb manualmente muito rapidamente. Primeiro, você precisa obter o código-fonte do Git, junto com o GitWeb, e gerar o script CGI personalizado:
+
+$ git clone git://git.kernel.org/pub/scm/git/git.git
+$ cd git/
+$ make GITWEB_PROJECTROOT="/srv/git" prefix=/usr gitweb
+    SUBDIR gitweb
+    SUBDIR ../
+make[2]: `GIT-VERSION-FILE' is up to date.
+    GEN gitweb.cgi
+    GEN static/gitweb.js
+$ sudo cp -Rf gitweb /var/www/
+
+Observe que você precisa dizer ao comando onde encontrar seus repositórios Git com a GITWEB_PROJECTROOTvariável. Agora, você precisa fazer o Apache usar o CGI para esse script, para o qual você pode adicionar um VirtualHost:
+
+<VirtualHost *:80>
+    ServerName gitserver
+    DocumentRoot /var/www/gitweb
+    <Directory /var/www/gitweb>
+        Options ExecCGI +FollowSymLinks +SymLinksIfOwnerMatch
+        AllowOverride All
+        order allow,deny
+        Allow from all
+        AddHandler cgi-script cgi
+        DirectoryIndex gitweb.cgi
+    </Directory>
+</VirtualHost>
+
+Novamente, o GitWeb pode ser servido com qualquer servidor da Web compatível com CGI ou Perl; Se você preferir usar outra coisa, não será difícil configurar. Neste ponto, você deve poder visitar http://gitserver/para ver seus repositórios online.
+
+
+4.8 [Git on the Server - GitLab]
+
+GitLab
+Embora o GitWeb seja bastante simplista, se você estiver procurando por um servidor Git mais moderno e completo, existem algumas soluções de código aberto lá fora que você pode instalar em vez deste. Como o GitLab é um dos mais populares, vamos cobrir a instalação e usá-lo como um exemplo. Este é um pouco mais complexo do que a opção GitWeb e provavelmente requer mais manutenção, mas é uma opção muito mais completa.
+
+(Instalação)
+O GitLab é um aplicativo da Web baseado em banco de dados, por isso sua instalação é um pouco mais trabalhosa do que alguns outros servidores Git. Felizmente, este processo é muito bem documentado e apoiado.
+
+Existem alguns métodos que você pode seguir para instalar o GitLab. Para obter algo em execução rapidamente, você pode baixar uma imagem de máquina virtual ou um instalador de um clique em https://bitnami.com/stack/gitlab e ajustar a configuração para que corresponda ao seu ambiente particular.. Um toque agradável que Bitnami incluiu é a tela de login (acessada digitando alt-→); Ele informa o endereço IP e o nome de usuário e senha padrão para o GitLab instalado.
+
+
+
+                    [Figure 50. A tela de login da máquina virtual Bitnami GitLab.]
+
+
+
+Para qualquer outra coisa, siga as orientações no readme do GitLab Community Edition, que pode ser encontrado em https://gitlab.com/gitlab-org/gitlab-ce/tree/master. Lá você encontrará assistência na instalação do GitLab usando receitas do Chef, a máquina virtual no Digital Ocean, e os pacotes RPM e DEB (que, no momento em que este texto foi escrito, estava na versão estável Omnibus, para os sistemas operacionais Ubuntu 14.04, Ubuntu 16.04, Debian 7, Debian 8, CentOS 6, CentOS 7, OpenSUSE 42.1 e Raspberry PI 2 em Raspbian). Há também guias com orientações “não oficiais” para que o GitLab funcione em sistemas operacionais e bancos de dados diferentes dos citados acima, um script para instalação completamente manual e muitos outros tópicos.
+
+(Administração)
+A interface de administração do GitLab é acessada através da web. Basta apontar o seu navegador para o nome do host ou endereço IP onde o GitLab está instalado e efetuar login como um usuário admin. O nome de usuário padrão é admin@local.host e a senha padrão é 5iveL!fe (que você será solicitado a alterar assim que você entrar nele). Depois de efetuar login, clique no ícone “Área de administração” no menu no canto superior direito.
+
+
+
+                [Figure 51. O item “Área de administração” no menu GitLab.]
+
+
+
+(Usuários)
+Usuários no GitLab são contas que correspondem a pessoas. As contas de usuário não têm muita complexidade; A conta de usuário é uma coleção de informações pessoais anexadas aos dados de login. Cada conta de usuário vem com um namespace, que é um agrupamento lógico de projetos que pertencem a esse usuário. Se o usuário jane tivesse um projeto chamado project, o URL do projeto seria http://servidor/jane/project.
+
+Tela de administração de usuários do GitLab.
+Figure 52. Tela de administração de usuários do GitLab.
+Remoção de um usuário pode ser feito de duas formas. “Bloquear” um usuário os impede de logar na instância do Gitlab, mas todos os dados sob o namespace do usuário serão preservados, e os commits assinados com o e-mail do usuário ainda irão direcionar para o perfil do mesmo.
+
+“Destruir” um usuário, por outro lado, remove o remove completamente do banco de dados e do sistema de arquivos. Todos os projetos e dados no namespace são removidos, e qualquer outro grupo que ele possua também será removido. Isso é obviamente uma ação muito mais permanete e destrutiva, e o uso disso é raro.
+
+(Grupos)
+Um grupo GitLab é um conjunto de projetos, juntamente com dados sobre como os usuários podem acessar esses projetos. Cada grupo tem um espaço para nome de projeto (da mesma forma que os usuários), então se o grupo training tiver um projeto materials, sua url seria http://servidor/training/materials.
+
+
+
+                
+                    [Figure 53. Tela de administração de grupos do GitLab.]
+
+
+
+Cada grupo está associado a um número de usuários, cada um com um nível de permissões para os projetos do grupo e para o próprio grupo. Estes variam de “Convidado” (problemas e bate-papo somente) a “Proprietário” (controle total do grupo, seus membros e seus projetos). Os tipos de permissões são muito numerosos para listar aqui, mas o GitLab tem um link útil na tela de administração.
+
+(Projetos)
+Um projeto GitLab corresponde grosso modo a um único repositório Git. Cada projeto pertence a um único namespace, a um usuário ou a um grupo. Se o projeto pertence a um usuário, o proprietário do projeto tem controle direto sobre quem tem acesso ao projeto; Se o projeto pertence a um grupo, as permissões de nível de usuário do grupo também terão efeito.
+
+Cada projeto também tem um nível de visibilidade, que controla quem tem acesso de leitura às páginas desse projeto e ao repositório. Se um projeto for Privado, o proprietário do projeto deve conceder explicitamente acesso a usuários específicos. Um projeto Interno é visível para qualquer usuário logado, e um projeto Público é visível para qualquer pessoa. Observe que isso controla tanto o acesso git fetch quanto o acesso à interface web do usuário a esse projeto.
+
+Ganchos (hooks)
+O GitLab inclui suporte para ganchos (hooks), tanto a nível de projeto como de sistema. Para qualquer um destes, o servidor GitLab executará um HTTP POST com algum JSON descritivo sempre que ocorrerem eventos relevantes. Esta é uma ótima maneira de conectar seus repositórios Git e a instância GitLab ao resto de sua automação de desenvolvimento, como servidores CI, salas de bate-papo ou ferramentas de implantação.
+
+(Uso Básico)
+A primeira coisa que você vai querer fazer com o GitLab é criar um novo projeto. Isso é feito clicando no ícone “+” na barra de ferramentas. Ser-lhe-á pedido o nome do projecto, a qual namespace ele deverá pertencer e que nível de visibilidade deverá ter. A maior parte do que você especifica aqui não é permanente e pode ser reajustada posteriormente através da interface de configurações. Clique em “Criar projeto” e pronto.
+
+Uma vez que o projeto exista, você provavelmente vai querer conectá-lo com um repositório Git local. Cada projeto é acessível através de HTTPS ou SSH, sendo que ambos podem ser usados para configurar um Git remoto. As URLs estão visíveis na parte superior da página inicial do projeto. Para um repositório local existente, este comando criará um remoto chamado gitlab para o local hospedado:
+
+$ git remote add gitlab https://servidor/namespace/project.git
+
+Se você não tem uma cópia local do repositório, você pode simplesmente fazer isso:
+
+$ git clone https://servidor/namespace/project.git
+
+A interface do usuário da Web fornece acesso a várias visualizações úteis do próprio repositório. A página inicial de cada projeto mostra as atividades recentes e os links ao longo do topo levam você a exibições dos arquivos do projeto e do log de commits.
+
+(Trabalhando juntos)
+A maneira mais simples de trabalhar juntos em um projeto GitLab é dar a outro usuário acesso direto de push (envio de commits) ao repositório Git. Você pode adicionar um usuário a um projeto indo para a seção “Membros” das configurações desse projeto e associando o novo usuário com um nível de acesso (os diferentes níveis de acesso estão um pouco descritos em Grupos). Ao fornecer a um usuário um nível de acesso de “Desenvolvedor” ou superior, esse usuário pode empurrar branches e ramificações diretamente para o repositório.
+
+Outra maneira mais dissociada de colaboração é usar solicitações de mesclagem. Esse recurso permite que qualquer usuário que possa ver um projeto contribua para ele de forma controlada. Os usuários com acesso direto podem simplesmente criar uma ramificação, empurrá-la para ele e abrir uma solicitação de mesclagem de seu ramo de volta para master ou qualquer outra ramificação. Os usuários que não têm permissões push para um repositório podem "fork" (criar sua própria cópia), push commit para aquela cópia e abrir uma solicitação de mesclagem de sua bifurcação de volta para o projeto principal. Este modelo permite que o proprietário esteja no controle total do que entra no repositório e quando, embora permita contribuições de usuários não confiáveis.
+
+Os pedidos de mesclagem e os problemas são as principais unidades de discussão de longa duração no GitLab. Cada solicitação de mesclagem permite uma discussão linha a linha da alteração proposta (que suporta um tipo leve de revisão de código), bem como um tópico geral de discussão geral. Ambos podem ser atribuídos a usuários ou organizados em marcos.
+
+Esta seção é focada principalmente nos recursos relacionados ao Git do GitLab, mas como um projeto maduro, ele fornece muitos outros recursos para ajudar sua equipe a trabalhar em conjunto, como wikis de projeto e ferramentas de manutenção do sistema. Um benefício para o GitLab é que, uma vez que o servidor está configurado e em execução, você raramente precisará ajustar um arquivo de configuração ou acessar o servidor via SSH; A maior parte da administração e o uso geral podem ser realizados através da interface no navegador.
+
+
+
+4.9 [[ Git no servidor - opções hospedadas por terceiros ]]
+
+Opções hospedadas por terceiros
+Se você não quer passar por todo o trabalho envolvido na criação do seu próprio servidor Git, você tem várias opções para hospedar seus projetos Git em um site de hospedagem externa dedicado. Isso oferece várias vantagens: um site de hospedagem geralmente é rápido de configurar e fácil de iniciar projetos, e nenhuma manutenção ou monitoramento de servidor está envolvida. Mesmo que você configure e execute seu próprio servidor internamente, talvez ainda queira usar um site de hospedagem pública para o seu código-fonte aberto - é geralmente mais fácil para a comunidade de código aberto encontrá-lo e ajudá-lo.
+
+Hoje em dia, você tem um grande número de opções de hospedagem para escolher, cada uma com vantagens e desvantagens diferentes. Para ver uma lista atualizada, confira a página do GitHosting no wiki principal do Git em https://git.wiki.kernel.org/index.php/GitHosting
+
+Nós abordaremos o uso do GitHub em detalhes no GitHub , já que ele é o maior host do Git e talvez você precise interagir com projetos hospedados nele, mas existem outras dezenas para escolher caso você não queira configurar seu próprio servidor Git.
+
+
+4.10 [[ Git no servidor - Resumo]]
+
+(Resumo)
+Você tem várias opções para colocar um repositório remoto do Git em funcionamento para poder colaborar com outras pessoas ou compartilhar seu trabalho.
+
+A execução de seu próprio servidor lhe dá muito controle e permite que você execute o servidor dentro de seu próprio firewall, mas esse servidor geralmente requer uma boa quantia de tempo para configurar e manter. Se você colocar seus dados em um servidor hospedado, é fácil de configurar e manter; no entanto, você precisa manter seu código nos servidores de outra pessoa e algumas organizações não permitem isso.
+
+Deve ser bastante simples determinar qual solução ou combinação de soluções é apropriada para você e sua organização.
