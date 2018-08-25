@@ -1,0 +1,1095 @@
+GIThUB
+
+6.1 [[ GitHub - Configuração e Configuração da Conta ]]
+
+O GitHub é o maior host único para repositórios Git e é o ponto central de colaboração de milhões de desenvolvedores e projetos. Uma grande porcentagem de todos os repositórios do Git são hospedados no GitHub, e muitos projetos de código aberto o usam para hospedagem do Git, rastreamento de problemas, revisão de código e outras coisas. Portanto, embora não seja uma parte direta do projeto de código aberto do Git, há uma boa chance de você querer ou precisar interagir com o GitHub em algum momento enquanto usa o Git profissionalmente.
+
+Este capítulo trata do uso do GitHub com eficiência. Nós cobriremos a inscrição e o gerenciamento de uma conta, criando e usando repositórios Git, fluxos de trabalho comuns para contribuir com projetos e aceitar contribuições para você, a interface programática do GitHub e muitas pequenas dicas para facilitar sua vida em geral.
+
+Se você não estiver interessado em usar o GitHub para hospedar seus próprios projetos ou colaborar com outros projetos hospedados no GitHub, você pode pular para o <a href="">Git Tools</a> com segurança .
+
+(Configuração de conta e configuração)
+A primeira coisa que você precisa fazer é configurar uma conta de usuário gratuita. Basta visitar https://github.com , escolher um nome de usuário que ainda não tenha sido usado, fornecer um endereço de e-mail e uma senha e clicar no botão verde "Inscrever-se no GitHub".
+
+
+                [Figura 82. O formulário de inscrição do GitHub.]
+
+
+
+A próxima coisa que você verá é a página de preços para planos atualizados, mas é seguro ignorar isso por enquanto. O GitHub enviará um e-mail para você confirmar o endereço fornecido. Vá em frente e faça isso, é muito importante (como veremos mais adiante).
+
+|Nota
+O GitHub fornece toda a sua funcionalidade com contas gratuitas, com a limitação de que todos os seus projetos são totalmente públicos (todos têm acesso de leitura). Os planos pagos do GitHub incluem um número definido de projetos privados, mas não cobriremos os deste livro.
+
+Clicar no logotipo do Octocat no canto superior esquerdo da tela levará você à sua página do painel. Agora você está pronto para usar o GitHub.
+
+(Acesso SSH)
+A partir de agora, você é totalmente capaz de se conectar com repositórios Git usando o https:// protocolo, autenticando com o nome de usuário e senha que você acabou de configurar. No entanto, para simplesmente clonar projetos públicos, você nem precisa se inscrever - a conta que acabamos de criar entra em ação quando forçamos os projetos e pressionamos um pouco mais os nossos garfos.
+
+Se você quiser usar controles remotos de SSH, precisará configurar uma chave pública. (Se você ainda não tiver uma, consulte Como <a href="">gerar sua chave pública SSH</a>.) Abra as configurações da sua conta usando o link na parte superior direita da janela:
+
+
+
+
+                            [Figura 83. O link "Configurações da conta".]
+
+
+
+Em seguida, selecione a seção "Chaves SSH" ao longo do lado esquerdo.
+
+
+
+                            [Figura 84. O link "Chaves SSH".]
+
+
+A partir daí, clique no botão " Add an SSH key", dê um nome à sua chave, cole o conteúdo do seu ~/.ssh/id_rsa.pub(ou o que você nomeou) arquivo de chave pública na área de texto e clique em "Adicionar chave".
+
+|Nota
+Certifique-se de nomear sua chave SSH de algo que você possa lembrar. Você pode nomear cada uma das suas chaves (por exemplo, "Meu Laptop" ou "Conta de Trabalho") para que, se precisar revogar uma chave mais tarde, você possa identificar facilmente qual delas está procurando.
+
+(Seu avatar)
+Em seguida, se desejar, você pode substituir o avatar que é gerado por você com uma imagem de sua escolha. Primeiro, vá para a guia "Perfil" (acima da guia Chaves SSH) e clique em "Enviar nova foto".
+
+
+
+                        [Figura 85. O link "Perfil".]
+
+
+Nós vamos escolher uma cópia do logotipo do Git que está no nosso disco rígido e, em seguida, temos a chance de cortá-lo.
+
+                        
+                        [Figura 86. Cortar seu avatar]
+
+
+Agora, em qualquer lugar que você interaja no site, as pessoas verão seu avatar ao lado do seu nome de usuário.
+
+Se você tiver enviado um avatar para o popular serviço Gravatar (geralmente usado para contas do Wordpress), esse avatar será usado por padrão e você não precisa fazer essa etapa.
+
+(Seus endereços de e-mail)
+A maneira como o GitHub mapeia seu Git confirma seu usuário é por endereço de e-mail. Se você usa vários endereços de e-mail em suas confirmações e deseja que o GitHub as vincule corretamente, é necessário adicionar todos os endereços de e-mail que você usou à seção E-mails da seção administrativa.
+
+
+                    [Figura 87. Adicione endereços de email]
+
+
+Em Adicionar endereços de e-mail , podemos ver alguns dos diferentes estados possíveis. O endereço principal é verificado e definido como o endereço principal, o que significa que é onde você receberá notificações e recibos. O segundo endereço é verificado e, portanto, pode ser definido como o principal, se você deseja alterná-los. O endereço final não foi verificado, o que significa que você não pode torná-lo seu endereço principal. Se o GitHub vir qualquer um deles em mensagens de commit em qualquer repositório do site, ele será vinculado ao seu usuário agora.
+
+(Autenticação de dois fatores)
+Finalmente, para segurança extra, você deve definitivamente configurar Autenticação de Dois Fatores ou “2FA”. A autenticação de dois fatores é um mecanismo de autenticação que está se tornando cada vez mais popular recentemente para reduzir o risco de comprometer sua conta se sua senha for roubada de alguma forma. A ativação fará com que o GitHub solicite dois métodos diferentes de autenticação, para que, se um deles for comprometido, um invasor não consiga acessar sua conta.
+
+Você pode encontrar a configuração Autenticação de dois fatores na guia Segurança das configurações da sua conta.
+
+
+                        [Figura 88. 2FA na guia Segurança]
+
+
+Se você clicar no botão “Configurar autenticação de dois fatores”, ele levará você a uma página de configuração na qual poderá optar por usar um aplicativo de telefone para gerar seu código secundário (uma “senha única baseada em tempo”) ou Você pode fazer com que o GitHub envie um código via SMS sempre que você precisar fazer o login.
+
+Depois de escolher o método que preferir e seguir as instruções para configurar o 2FA, sua conta será um pouco mais segura e você terá que fornecer um código além da sua senha sempre que fizer login no GitHub.
+
+
+
+6.2 [[ GitHub - Contribuindo para um Projeto ]]
+
+*Contribuindo para um projeto
+Agora que nossa conta está configurada, vamos analisar alguns detalhes que podem ser úteis para ajudar você a contribuir para um projeto existente.
+
+(Projetos de bifurcação)
+Se você quiser contribuir com um projeto existente para o qual você não tem acesso push, poderá "bifurcar" o projeto. Quando você “bifurcar” um projeto, o GitHub fará uma cópia do projeto que é inteiramente seu; vive em seu namespace e você pode empurrá-lo.
+
+|Nota
+Historicamente, o termo “fork” tem sido um pouco negativo no contexto, o que significa que alguém levou um projeto de código aberto em uma direção diferente, às vezes criando um projeto concorrente e dividindo os contribuidores. No GitHub, um “fork” é simplesmente o mesmo projeto em seu próprio namespace, permitindo que você faça alterações em um projeto publicamente como uma maneira de contribuir de uma maneira mais aberta.
+
+Dessa forma, os projetos não precisam se preocupar em adicionar usuários como colaboradores para fornecer acesso push. As pessoas podem bifurcar um projeto, empurrá-lo e contribuir com suas alterações de volta ao repositório original, criando o que é chamado de solicitação de extração, que abordaremos a seguir. Isso abre um tópico de discussão com revisão de código, e o proprietário e o colaborador podem se comunicar sobre a alteração até que o proprietário esteja satisfeito com ela, quando o proprietário pode mesclá-la.
+
+Para bifurcar um projeto, visite a página do projeto e clique no botão "Bifurcação" no canto superior direito da página.
+
+
+
+                            [ Figura 89. O botão “Fork”. ]
+
+
+Após alguns segundos, você será direcionado para a nova página do projeto, com sua própria cópia gravável do código.
+
+(O fluxo do GitHub)
+O GitHub é projetado em torno de um fluxo de trabalho de colaboração específico, centrado em solicitações de pull. Esse fluxo funciona se você está colaborando com uma equipe unida em um único repositório compartilhado, ou uma empresa globalmente distribuída ou uma rede de estranhos contribuindo para um projeto através de dezenas de garfos. Ele está centrado no fluxo de trabalho de ramos do tópico, abordado no Git Branching .
+
+Veja como isso geralmente funciona:
+
+1. Bifurque o projeto
+2. Crie um ramo de tópicos de master.
+3. Faça alguns commits para melhorar o projeto.
+4. Empurre essa ramificação para o seu projeto do GitHub.
+5. Abra uma solicitação pull no GitHub.
+6. Discuta e, opcionalmente, continue comprometendo.
+7. O proprietário do projeto mescla ou fecha a solicitação pull.
+
+Esse é basicamente o fluxo de trabalho do Integration Manager abordado no fluxo de trabalho do Integration-Manager , mas em vez de usar o email para comunicar e revisar as alterações, as equipes usam as ferramentas baseadas na Web do GitHub.
+
+Vamos percorrer um exemplo de propor uma alteração em um projeto de software livre hospedado no GitHub usando esse fluxo.
+
+(Criando uma solicitação pull)
+Tony está procurando código para rodar em seu microcontrolador programável Arduino e encontrou um ótimo arquivo de programa no GitHub em https://github.com/schacon/blink .
+
+
+
+                [Figura 90. O projeto que queremos contribuir.]
+
+
+O único problema é que a taxa de intermitência é muito rápida, achamos muito melhor esperar 3 segundos em vez de 1 entre cada mudança de estado. Então, vamos melhorar o programa e enviá-lo de volta ao projeto como uma mudança proposta.
+
+Primeiro, clicamos no botão Fork como mencionado anteriormente para obter nossa própria cópia do projeto. Nosso nome de usuário aqui é "tonychacon", então nossa cópia deste projeto está em https://github.com/tonychacon/blink e é onde podemos editá-lo. Vamos cloná-lo localmente, criar uma ramificação de tópico, alterar o código e, finalmente, enviar essa alteração de volta para o GitHub.
+
+$ git clone https://github.com/tonychacon/blink (1)
+Cloning into 'blink'...
+
+$ cd blink
+$ git checkout -b slow-blink (2)
+Switched to a new branch 'slow-blink'
+
+$ sed -i '' 's/1000/3000/' blink.ino (3)
+
+$ git diff --word-diff (4)
+diff --git a/blink.ino b/blink.ino
+index 15b9911..a6cc5a5 100644
+--- a/blink.ino
++++ b/blink.ino
+@@ -18,7 +18,7 @@ void setup() {
+// the loop routine runs over and over again forever:
+void loop() {
+  digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
+  [-delay(1000);-]{+delay(3000);+}               // wait for a second
+  digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
+  [-delay(1000);-]{+delay(3000);+}               // wait for a second
+}
+
+$ git commit -a -m 'three seconds is better' (5)
+[slow-blink 5ca509d] three seconds is better
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+$ git push origin slow-blink (6)
+Username for 'https://github.com': tonychacon
+Password for 'https://tonychacon@github.com':
+Counting objects: 5, done.
+Delta compression using up to 8 threads.
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 340 bytes | 0 bytes/s, done.
+Total 3 (delta 1), reused 0 (delta 0)
+To https://github.com/tonychacon/blink
+ * [new branch]      slow-blink -> slow-blink
+
+
+1. Clone nosso garfo do projeto localmente
+2. Crie um ramo de tópico descritivo
+3. Faça nossa mudança no código
+4. Verifique se a mudança é boa
+5. Comprometer nossa mudança para o ramo de tópico
+6. Empurre nossa nova ramificação de tópico para o nosso garfo GitHub
+
+Agora, se voltarmos ao nosso fork no GitHub, podemos ver que o GitHub notou que lançamos um novo branch tópico e nos presenteou com um grande botão verde para verificar nossas alterações e abrir uma solicitação pull para o projeto original.
+
+Como alternativa, você pode acessar a página "Filiais" https://github.com/<user>/<project>/branchespara localizar sua filial e abrir uma nova solicitação de retirada a partir daí.
+
+
+                    [Figura 91. Botão Solicitar Solicitação]
+
+
+Se clicarmos nesse botão verde, veremos uma tela que nos pede para dar um título e uma descrição à nossa solicitação de retirada. Quase sempre vale a pena dedicar algum esforço a isso, já que uma boa descrição ajuda o proprietário do projeto original a determinar o que você estava tentando fazer, se as alterações propostas estão corretas e se aceitar as alterações melhoraria o projeto original.
+
+Também vemos uma lista dos commits em nossa ramificação de tópico que estão "à frente" da master ramificação (neste caso, apenas a única) e uma comparação unificada de todas as alterações que serão feitas caso essa ramificação seja mesclada pelo proprietário do projeto .
+
+
+
+                [Figura 92. Página de criação de solicitação pull]
+
+
+Quando você clica no botão " Solicitar solicitação pull " nessa tela, o proprietário do projeto que você bifurcou receberá uma notificação de que alguém está sugerindo uma alteração e vinculará a uma página que tenha todas essas informações contidas nela.
+
+|Nota
+Embora as solicitações de pull sejam usadas comumente para projetos públicos como esse, quando o colaborador tem uma alteração completa pronta para ser feita, ele também é usado com frequência em projetos internos no início do ciclo de desenvolvimento. Como você pode continuar pressionando até a ramificação do tópico mesmo depois que a Solicitação de Pull for aberta, ela geralmente é aberta cedo e usada como uma forma de repetir o trabalho como uma equipe dentro de um contexto, em vez de ser aberta no final do processo.
+
+(Iterando em um pedido pull)
+Nesse ponto, o proprietário do projeto pode examinar a alteração sugerida e mesclá-la, rejeitá-la ou comentá-la. Digamos que ele goste da ideia, mas prefira um tempo um pouco mais longo para a luz estar desligada do que ligada.
+
+Onde essa conversa pode ocorrer por e-mail nos fluxos de trabalho apresentados no Distributed Git , no GitHub isso acontece on-line. O proprietário do projeto pode revisar o diff unificado e deixar um comentário clicando em qualquer uma das linhas.
+
+
+
+            [Figura 93. Comentário sobre uma linha específica de código em um Pedido Pull]
+
+
+
+Depois que o mantenedor fizer esse comentário, a pessoa que abriu a Solicitação de Pull (e, na verdade, qualquer outra pessoa que esteja observando o repositório) receberá uma notificação. Nós vamos passar por cima de customizar isso mais tarde, mas se ele tivesse as notificações de e-mail ativadas, Tony receberia um e-mail assim:
+
+
+
+                [Figura 94. Comentários enviados como notificações por email]
+
+
+
+Qualquer pessoa também pode deixar comentários gerais sobre o pedido de retirada. Na página de discussão Solicitação de extração , podemos ver um exemplo do proprietário do projeto comentando uma linha de código e deixando um comentário geral na seção de discussão. Você pode ver que os comentários do código são trazidos para a conversa também.
+
+
+
+                [Figura 95. Página de discussão de solicitação pull]
+
+
+
+Agora, o colaborador pode ver o que precisa fazer para que a alteração seja aceita. Felizmente isso é muito simples. Onde por e-mail você pode ter que re-rolar sua série e reenviá-la para a lista de discussão, com o GitHub você simplesmente se compromete com a ramificação do tópico novamente e envia, o que atualizará automaticamente a solicitação pull. No <a href="">Pull Request final</a> , você também pode ver que o comentário do código antigo foi recolhido na solicitação pull atualizada, já que foi feito em uma linha que foi alterada desde então.
+
+Adicionar commits a uma solicitação de pull existente não aciona uma notificação, então, assim que Tony fizer as correções, ele decide deixar um comentário para informar ao proprietário do projeto que ele fez a alteração solicitada.
+
+
+                [Figura 96. Pedido de extração final]
+
+
+Uma coisa interessante a se notar é que, se você clicar na aba “Arquivos Alterados” nesta Solicitação de Pull, você obterá o diff “unificado” - ou seja, a diferença agregada total que seria introduzida em sua ramificação principal se este tópico A filial foi mesclada. Em git difftermos, ela basicamente mostra automaticamente [git diff master...<branch>] para o ramo em que esta solicitação pull está baseada. Veja Determinando o que é introduzido para mais sobre este tipo de diff.
+
+A outra coisa que você notará é que o GitHub verifica se a solicitação de pull mescla de forma limpa e fornece um botão para fazer a mesclagem para você no servidor. Este botão só aparece se você tiver acesso de gravação ao repositório e uma mesclagem trivial for possível. Se você clicar nele, o GitHub executará uma mesclagem “não-fast-forward”, o que significa que, mesmo que a mesclagem possa ser um avanço rápido, ele ainda criará uma confirmação de mesclagem.
+
+Se você preferir, simplesmente puxe o ramo para baixo e mescle-o localmente. Se você mesclar essa ramificação na master ramificação e enviá-la para o GitHub, a solicitação pull será fechada automaticamente.
+
+Esse é o fluxo de trabalho básico usado pela maioria dos projetos do GitHub. As ramificações de tópicos são criadas, as Solicitações Pull são abertas nelas, uma discussão é realizada, possivelmente mais trabalho é feito na filial e, eventualmente, a solicitação é fechada ou mesclada.
+
+|Nota
+Não apenas garfos
+É importante observar que você também pode abrir uma solicitação pull entre duas ramificações no mesmo repositório. Se você estiver trabalhando em um recurso com alguém e ambos tiverem acesso de gravação ao projeto, você poderá enviar uma ramificação de tópico para o repositório e abrir uma Solicitação de Pull nele na masterramificação desse mesmo projeto para iniciar a revisão e a discussão do código processo. Nenhum forking necessário.
+
+(Solicitações avançadas de pull)
+Agora que abordamos as noções básicas de contribuição para um projeto no GitHub, vamos abordar algumas dicas e truques interessantes sobre solicitações de solicitação para que você possa ser mais eficiente ao usá-las.
+
+(Puxe Solicitações como Patches)
+É importante entender que muitos projetos realmente não pensam em Pull Requests como filas de patches perfeitos que devem ser aplicados de forma limpa em ordem, já que a maioria dos projetos baseados em listas de discussão pensa em contribuições de séries de patches. A maioria dos projetos do GitHub considera as ramificações Pull Request como conversas iterativas em torno de uma mudança proposta, culminando em um diff unificado que é aplicado pela fusão.
+
+Essa é uma distinção importante, porque geralmente a mudança é sugerida antes que o código seja considerado perfeito, o que é muito mais raro com as contribuições de séries de patch baseadas em listas de discussão. Isso permite uma conversa mais cedo com os mantenedores, de modo que chegar à solução adequada é mais um esforço da comunidade. Quando o código é proposto com uma Solicitação de Pull e os mantenedores ou a comunidade sugerem uma mudança, a série de patches geralmente não é relançada, mas a diferença é empurrada como um novo commit para o branch, levando a conversa adiante com o contexto do trabalho anterior intacto.
+
+Por exemplo, se você voltar e olhar novamente para o Final da Solicitação de Pull , notará que o contribuidor não rebase sua confirmação e envia outra Solicitação de Pull. Em vez disso, eles adicionaram novos commits e os enviaram para o branch existente. Desta forma, se você voltar e olhar para este Pedido de Retirada no futuro, você pode facilmente encontrar todo o contexto de por que as decisões foram tomadas. Apertar o botão “Mesclar” no site propositalmente cria um commit de mesclagem que referencia o Pull Request para que seja fácil voltar e pesquisar a conversa original, se necessário.
+
+(Mantendo-se com o Upstream)
+Se a sua solicitação de extração ficar desatualizada ou não for mesclada corretamente, você deverá corrigi-la para que o mantenedor possa facilmente mesclá-la. O GitHub testará isso para você e informará você na parte inferior de cada solicitação de extração se a mesclagem for trivial ou não.
+
+
+
+                [Figura 97. A solicitação pull não é mesclada corretamente]
+
+
+Se você vir algo como Solicitação de extração não se mesclar corretamente , você deverá corrigir sua ramificação para que fique verde e o mantenedor não tenha que fazer um trabalho extra.
+
+Você tem duas opções principais para fazer isso. Você pode rebase sua ramificação em cima de qualquer que seja a ramificação de destino (normalmente a masterramificação do repositório que você bifurcou), ou você pode mesclar a ramificação de destino em sua ramificação.
+
+A maioria dos desenvolvedores no GitHub escolherá fazer o último, pelas mesmas razões que acabamos de ver na seção anterior. O que importa é a história e a mesclagem final, de modo que rebasing não significa muito mais do que uma história um pouco mais limpa e, em troca, é muito mais difícil e passível de erros.
+
+Se você quiser mesclar na ramificação de destino para tornar sua solicitação de extração mesclável, você adicionaria o repositório original como um novo controle remoto, buscaria nele, mesclaria a ramificação principal desse repositório em sua ramificação de tópico, corrigiria quaisquer problemas e, finalmente, o pressionaria. voltar para o mesmo ramo em que você abriu o Pull Request on.
+
+Por exemplo, digamos que no exemplo “tonychacon” que estávamos usando antes, o autor original fez uma alteração que criaria um conflito na solicitação pull. Vamos passar por essas etapas.
+
+$ git remote add upstream https://github.com/schacon/blink (1)
+
+$ git fetch upstream (2)
+remote: Counting objects: 3, done.
+remote: Compressing objects: 100% (3/3), done.
+Unpacking objects: 100% (3/3), done.
+remote: Total 3 (delta 0), reused 0 (delta 0)
+From https://github.com/schacon/blink
+ * [new branch]      master     -> upstream/master
+
+$ git merge upstream/master (3)
+Auto-merging blink.ino
+CONFLICT (content): Merge conflict in blink.ino
+Automatic merge failed; fix conflicts and then commit the result.
+
+$ vim blink.ino (4)
+$ git add blink.ino
+$ git commit
+[slow-blink 3c8d735] Merge remote-tracking branch 'upstream/master' \
+    into slower-blink
+
+$ git push origin slow-blink (5)
+Counting objects: 6, done.
+Delta compression using up to 8 threads.
+Compressing objects: 100% (6/6), done.
+Writing objects: 100% (6/6), 682 bytes | 0 bytes/s, done.
+Total 6 (delta 2), reused 0 (delta 0)
+To https://github.com/tonychacon/blink
+   ef4725c..3c8d735  slower-blink -> slow-blink
+
+
+1. Adicione o repositório original como um controle remoto chamado "upstream"
+2. Buscar o trabalho mais recente daquele controle remoto
+3. Mesclar o ramo principal em seu ramo de tópico
+4. Corrigir o conflito que ocorreu
+5. Empurre de volta para o mesmo ramo de tópico
+
+Depois que você fizer isso, a solicitação pull será atualizada automaticamente e verificada novamente para ver se ela é mesclada corretamente.
+
+
+                [Figura 98. O pull request agora se funde de forma limpa]
+
+
+Uma das grandes coisas sobre o Git é que você pode fazer isso continuamente. Se você tiver um projeto de execução muito longa, poderá mesclar facilmente a ramificação de destino repetidas vezes e só terá que lidar com conflitos que surgiram desde a última vez em que foi mesclada, tornando o processo muito gerenciável.
+
+Se você deseja realocar a ramificação para limpá-la, certamente poderá fazê-lo, mas é altamente recomendável não forçar o envio da ramificação na qual a solicitação de extração já está aberta. Se outras pessoas o fizeram e fizeram mais trabalhos, você se depara com todos os problemas descritos em Os Perigos do Rebasamento . Em vez disso, empurre a ramificação rebaseada para uma nova ramificação no GitHub e abra uma nova solicitação de extração referenciando a antiga e feche a original.
+
+(Referências)
+Sua próxima pergunta pode ser “Como faço para referenciar o antigo Pull Request?”. Acontece que existem muitas maneiras de fazer referência a outras coisas em quase todos os lugares que você pode escrever no GitHub.
+
+Vamos começar com a referência cruzada de outra solicitação pull ou um problema. Todos os pedidos e problemas de extração são atribuídos a números e são exclusivos no projeto. Por exemplo, você não pode ter o Pedido de Entrega 3 e o Problema 3. Se você quiser referenciar qualquer solicitação ou problema de extração de qualquer outro, você pode simplesmente colocar [#<num>] qualquer comentário ou descrição. Você também pode ser mais específico se a solicitação "Problema" ou "Puxar" estiver em outro lugar; escreva [username#<num>] se você estiver se referindo a um problema ou solicitação de pull em uma bifurcação do repositório em que estiver, ou [username/repo#<num>] para fazer referência a algo em outro repositório.
+
+Vamos ver um exemplo. Digamos que tenhamos criado novamente o branch no exemplo anterior, criado uma nova solicitação de pull para ele e agora queremos fazer referência à solicitação de pull antiga da nova. Também queremos referenciar um problema na bifurcação do repositório e um problema em um projeto completamente diferente. Podemos preencher a descrição como referências cruzadas em uma solicitação pull. .
+
+
+
+                    [Figura 99. Referências cruzadas em uma solicitação pull.]
+
+
+
+Quando enviarmos essa solicitação de pull, veremos tudo isso renderizado como Referências cruzadas renderizadas em uma solicitação pull. .
+
+
+
+                [Figura 100. Referências cruzadas renderizadas em uma solicitação pull.]
+
+
+
+Observe que a URL completa do GitHub que inserimos nela foi reduzida a apenas as informações necessárias.
+
+Agora, se Tony voltar e encerrar a Solicitação de Pull original, podemos ver que, ao mencioná-la no novo, o GitHub criou automaticamente um evento de trackback na linha de tempo do pull request. Isso significa que qualquer pessoa que visitar essa solicitação de extração e perceber que ela está fechada poderá vincular-se facilmente àquela que a substituiu. O link será parecido com referências cruzadas renderizadas em uma solicitação pull. .
+
+
+
+            [Figura 101. Referências cruzadas renderizadas em uma solicitação pull.]
+
+
+Além dos números de emissão, você também pode referenciar um commit específico do SHA-1. Você precisa especificar um SHA-1 completo de 40 caracteres, mas se o GitHub vir isso em um comentário, ele será vinculado diretamente ao commit. Novamente, você pode referenciar commits em forquilhas ou outros repositórios da mesma maneira que fez com problemas.
+
+(Markdown com sabor GitHub)
+Vincular a outros problemas é apenas o começo de coisas interessantes que você pode fazer com praticamente qualquer caixa de texto no GitHub. Nas descrições de Emissão e Solicitação de solicitação, comentários, comentários de código e muito mais, você pode usar o que é chamado de "GitHub Flavored Markdown". O Markdown é como escrever em texto simples, mas que é renderizado ricamente.
+
+Veja um exemplo de GitHub Flavored Markdown como escrito e como processado. para um exemplo de como comentários ou texto podem ser gravados e renderizados usando o Markdown.
+
+
+
+        [Figura 102. Um exemplo de GitHub Flavored Markdown como escrito e como processado.]
+
+
+
+O sabor do GitHub do Markdown adiciona mais coisas que você pode fazer além da sintaxe básica do Markdown. Tudo isso pode ser muito útil ao criar comentários ou descrições úteis de solicitação pull ou Issue.
+
+(Listas de Tarefas)
+O primeiro recurso de Markdown específico do GitHub realmente útil, especialmente para uso em solicitações pull, é a lista de tarefas. Uma lista de tarefas é uma lista de caixas de seleção de itens que você deseja realizar. Colocá-los em um problema ou solicitação de pull normalmente indica as coisas que você deseja fazer antes de considerar o item completo.
+
+Você pode criar uma lista de tarefas como esta:
+
+- [X] Write the code
+- [ ] Write all the tests
+- [ ] Document the code
+
+Se incluirmos isso na descrição de nosso pedido pull ou problema, ele será renderizado como listas de tarefas
+
+
+                 [Figura 103. Listas de tarefas renderizadas em um comentário Markdown.]
+
+
+Isso é usado com freqüência em solicitações de solicitação para indicar o que você gostaria que fosse feito na filial antes que a solicitação de recebimento estivesse pronta para ser mesclada. A parte mais legal é que você pode simplesmente clicar nas caixas de seleção para atualizar o comentário - você não precisa editar o Markdown diretamente para verificar as tarefas.
+
+Além disso, o GitHub procurará listas de tarefas em seus problemas e solicitações de solicitação e as mostrará como metadados nas páginas que as listam. Por exemplo, se você tiver uma solicitação de extração com tarefas e examinar a página de visão geral de todas as solicitações de extração, poderá ver até que ponto ela é executada. Isso ajuda as pessoas a dividir as Solicitações de Pull em subtarefas e ajuda outras pessoas a acompanhar o progresso do branch. Você pode ver um exemplo disso em Resumo da lista de tarefas na lista Solicitação de solicitação. .
+
+
+
+                    [Figura 104. Resumo da lista de tarefas na lista Pull Request.]
+
+
+
+Eles são incrivelmente úteis quando você abre uma solicitação pull antecipadamente e a utiliza para acompanhar seu progresso durante a implementação do recurso.
+
+(Partes de codigo)
+Você também pode adicionar snippets de código aos comentários. Isso é especialmente útil se você quiser apresentar algo que possa tentar fazer antes de implementá-lo como um commit em sua filial. Isso também é usado com frequência para adicionar código de exemplo do que não está funcionando ou o que essa solicitação pull pode implementar.
+
+Para adicionar um trecho de código, você deve “cercá-lo” nos backticks.
+
+```java
+for(int i=0 ; i < 5 ; i++)
+{
+   System.out.println("i is : " + i);
+}
+```
+Se você adicionar um nome de idioma como fizemos lá com java , o GitHub também tentará sintonizar o snippet. No caso do exemplo acima, ele acabaria sendo renderizado como exemplo de código protegido renderizado. .
+
+
+            [Figura 105. Exemplo de código protegido renderizado.]
+
+
+(Citando)
+Se estiver respondendo a uma pequena parte de um comentário longo, você pode citar seletivamente o outro comentário precedendo as linhas com o >caractere. Na verdade, isso é tão comum e tão útil que existe um atalho de teclado para ele. Se você destacar o texto em um comentário ao qual deseja responder diretamente e pressionar a rtecla, o texto será citado na caixa de comentários para você.
+
+As citações são algo como isto:
+
+> Whether 'tis Nobler in the mind to suffer
+> The Slings and Arrows of outrageous Fortune,
+
+How big are these slings and in particular, these arrows?
+Uma vez processado, o comentário será parecido com o exemplo de citação renderizada. .
+
+
+
+                    [Figura 106. Exemplo de cotação renderizada.]
+
+
+(Emoji)
+Finalmente, você também pode usar emoticons em seus comentários. Isso é usado bastante extensivamente nos comentários que você vê em muitos problemas do GitHub e solicitações de pull. Existe até um ajudante de emoji no GitHub. Se você estiver digitando um comentário e começar com um :personagem, um preenchimento automático ajudará você a encontrar o que está procurando.
+
+
+                    [Figura 107. Autocompleter Emoji em ação.]
+
+
+Emojis tomam a forma de :<name>: qualquer lugar no comentário. Por exemplo, você poderia escrever algo assim:
+
+I :eyes: that :bug: and I :cold_sweat:.
+
+:trophy: for :microscope: it.
+
+:+1: and :sparkles: on this :ship:, it's :fire::poop:!
+
+:clap::tada::panda_face:
+
+Quando renderizado, pareceria algo como Emoji pesado comentando. .
+
+
+
+                            [Figura 108. Emoji pesado comentando.]
+
+
+
+Não que isso seja incrivelmente útil, mas adiciona um elemento de diversão e emoção a um meio que, de outra forma, é difícil transmitir emoção.
+
+|Nota
+Há, na verdade, um grande número de serviços web que fazem uso de caracteres emoji nos dias de hoje. Uma ótima folha de referência para encontrar emoji que expresse o que você quer dizer pode ser encontrada em:
+
+http://www.emoji-cheat-sheet.com
+
+Imagens
+Isso não é tecnicamente o GitHub Flavored Markdown, mas é incrivelmente útil. Além de adicionar links de imagens Markdown a comentários, que podem ser difíceis de encontrar e incorporar URLs, o GitHub permite arrastar e soltar imagens em áreas de texto para incorporá-las.
+
+
+
+        
+    [Figura 109. Arraste e solte as imagens para carregá-las e incorporá-las automaticamente.]
+
+
+
+
+Se você olhar para arrastar e soltar imagens para enviá-los e incorporá-los automaticamente. , você pode ver uma pequena dica "analisada como Markdown" acima da área de texto. Clicando nele, você terá uma folha de dicas completa de tudo que você pode fazer com o Markdown no GitHub.
+
+
+6.3 [[ GitHub - Mantendo um Projeto ]]
+
+*Mantendo um projeto
+Agora que estamos confortáveis ​​contribuindo para um projeto, vamos ver o outro lado: criar, manter e administrar seu próprio projeto.
+
+(Criando um novo repositório)
+Vamos criar um novo repositório para compartilhar nosso código de projeto. Comece clicando no botão "Novo repositório" no lado direito do painel ou no +botão na barra de ferramentas superior ao lado do seu nome de usuário, conforme visto no menu suspenso "Novo repositório". .
+
+
+                    
+                    [Figura 110. A área “Seus repositórios”.]
+
+
+
+                    [Figura 111. O menu suspenso "Novo repositório".]
+
+
+
+Isso leva você ao formulário "novo repositório":
+
+
+                    [Figura 112. O formulário “novo repositório”.]
+
+
+Tudo o que você realmente precisa fazer aqui é fornecer um nome de projeto; o resto dos campos é completamente opcional. Por enquanto, basta clicar no botão “Create Repository”, e boom - você tem um novo repositório no GitHub, chamado <user>/<project_name>.
+
+Como você ainda não tem código, o GitHub mostrará instruções sobre como criar um novo repositório Git ou conectar um projeto existente do Git. Nós não vamos acreditar nisso aqui; Se você precisar de uma atualização, confira o Git Basics .
+
+Agora que seu projeto está hospedado no GitHub, você pode fornecer o URL para qualquer pessoa com quem deseja compartilhar seu projeto. Todo projeto no GitHub é acessível por HTTPS como https://github.com/<user>/<project_name>e por SSH como git@github.com:<user>/<project_name>. O Git pode buscar e enviar para essas duas URLs, mas elas são controladas por acesso com base nas credenciais do usuário que se conecta a elas.
+
+|Nota
+Geralmente, é preferível compartilhar a URL baseada em HTTPS para um projeto público, pois o usuário não precisa ter uma conta do GitHub para acessá-la para clonagem. Os usuários precisarão ter uma conta e uma chave SSH carregada para acessar seu projeto se você fornecer o URL SSH. O HTTPS também é exatamente o mesmo URL que eles colariam em um navegador para visualizar o projeto lá.
+
+(Adicionando Colaboradores)
+Se você está trabalhando com outras pessoas a quem deseja conceder acesso, você precisa adicioná-las como "colaboradores". Se Ben, Jeff e Louise se inscreverem para contas no GitHub e você quiser que eles tenham acesso push ao seu repositório, você poderá adicioná-los ao seu projeto. Ao fazer isso, eles terão acesso "push", o que significa que eles têm acesso de leitura e gravação ao projeto e ao repositório Git.
+
+Clique no link "Configurações" na parte inferior da barra lateral direita.
+
+
+
+
+                    [Figura 113. O link de configurações do repositório.]
+
+
+
+
+Em seguida, selecione "Colaboradores" no menu à esquerda. Em seguida, basta digitar um nome de usuário na caixa e clicar em "Adicionar colaborador". Você pode repetir isso quantas vezes quiser para conceder acesso a todos que desejar. Se você precisar revogar o acesso, basta clicar no "X" no lado direito da linha.
+
+
+
+                    [Figura 114. Colaboradores do Repositório.]
+
+
+(Gerenciando solicitações de pull)
+Agora que você tem um projeto com algum código nele e talvez até alguns colaboradores que também têm acesso push, vamos ver o que fazer quando você recebe um Pedido de Pull.
+
+As solicitações pull podem vir de uma ramificação em um fork do seu repositório ou podem vir de outra ramificação no mesmo repositório. A única diferença é que os que estão em um fork geralmente são de pessoas em que você não pode empurrar para o branch e eles não podem empurrar para o seu, enquanto que com o Pull request Requests geralmente ambas as partes podem acessar o branch.
+
+Para esses exemplos, vamos supor que você é “tonychacon” e criou um novo projeto de código do Arduino chamado “fade”.
+
+(Notificações por email)
+Alguém aparece e faz uma alteração no seu código e envia uma solicitação pull. Você deve receber um e-mail informando sobre a nova solicitação de extração e deve ser algo como notificação por e-mail de uma nova solicitação de extração. .
+
+
+
+                [Figura 115. Notificação por email de uma nova solicitação pull.]
+
+
+
+
+Existem algumas coisas para notar sobre este email. Ele lhe dará um pequeno diffstat - uma lista de arquivos que foram alterados na solicitação de extração e por quanto. Ele fornece um link para a solicitação de recebimento no GitHub. Ele também fornece algumas URLs que você pode usar a partir da linha de comando.
+
+Se você notar a linha que diz [git pull <url> patch-1], esta é uma maneira simples de mesclar em uma ramificação remota sem ter que adicionar um controle remoto. Nós revisamos isso rapidamente em Checking Out Remote Branches . Se desejar, você pode criar e alternar para um ramo de tópico e, em seguida, executar esse comando para mesclar nas alterações de solicitação de extração.
+
+As outras URLs interessantes são os URLs [.diff ]e [.patch] URLs, que, como você pode imaginar, fornecem versões unificadas de diff e patch da solicitação de pull. Você poderia tecnicamente mesclar no trabalho Pull Request com algo como isto:
+
+$ curl http://github.com/tonychacon/fade/pull/1.patch | git am
+
+(Colaborando na Solicitação de Pull)
+Como abordamos em O fluxo do GitHub , agora você pode conversar com a pessoa que abriu a solicitação de extração. Você pode comentar sobre linhas específicas de código, comentar sobre commits inteiros ou comentar sobre o próprio Pull Request, usando o GitHub Flavored Markdown em todos os lugares.
+
+Toda vez que alguém fizer comentários sobre a solicitação de recebimento, você continuará recebendo notificações por e-mail para saber se há atividade acontecendo. Cada um deles terá um link para a solicitação pull, onde a atividade está acontecendo, e você também poderá responder diretamente ao e-mail para comentar o encadeamento de solicitação pull.
+
+
+
+                [Figura 116. As respostas aos emails são incluídas no thread.]
+
+
+Uma vez que o código está em um lugar que você gosta e quer mesclá-lo, você pode puxar o código para baixo e mesclá-lo localmente, seja com a [git pull <url> <branch>] sintaxe que vimos anteriormente, ou adicionando o fork como um remoto e buscar e mesclar.
+
+Se a mesclagem for trivial, você também pode apertar o botão “Mesclar” no site do GitHub. Isso fará uma mesclagem de "não avanço rápido", criando um commit de mesclagem mesmo que uma mesclagem rápida seja possível. Isso significa que, não importa o que, toda vez que você apertar o botão de mesclagem, uma consolidação de mesclagem é criada. Como você pode ver no botão Mesclar e instruções para mesclar uma solicitação pull manualmente. , O GitHub fornece todas essas informações se você clicar no link dica.
+
+
+
+
+            [Figura 117. Botão Mesclar e instruções para mesclar uma solicitação pull manualmente.]
+
+
+
+
+Se você decidir que não deseja mesclá-lo, também pode fechar a solicitação de extração e a pessoa que a abriu será notificada.
+
+(Solicitações de solicitação de extração)
+Se você está lidando com muitas solicitações de pull e não quer adicionar um monte de controles remotos ou fazer um tempo de cada vez, há um truque que o GitHub permite que você faça. Este é um truque um pouco avançado e vamos analisar os detalhes disso um pouco mais no Refspec , mas pode ser bastante útil.
+
+O GitHub realmente anuncia as ramificações Pull Request para um repositório como uma espécie de ramificação pseudo no servidor. Por padrão, você não os obtém quando clona, ​​mas eles estão lá de uma forma obscura e você pode acessá-los facilmente.
+
+Para demonstrar isso, vamos usar um comando de baixo nível (geralmente chamado de comando “encanamento”, sobre o qual vamos ler mais em Encanamento e Porcelana ) [ls-remote]. Esse comando geralmente não é usado nas operações do Git do dia-a-dia, mas é útil nos mostrar quais referências estão presentes no servidor.
+
+Se executarmos esse comando no repositório “blink” que estávamos usando anteriormente, obteremos uma lista de todas as ramificações e tags e outras referências no repositório.
+
+$ git ls-remote https://github.com/schacon/blink
+10d539600d86723087810ec636870a504f4fee4d	HEAD
+10d539600d86723087810ec636870a504f4fee4d	refs/heads/master
+6a83107c62950be9453aac297bb0193fd743cd6e	refs/pull/1/head
+afe83c2d1a70674c9505cc1d8b7d380d5e076ed3	refs/pull/1/merge
+3c8d735ee16296c242be7a9742ebfbc2665adec1	refs/pull/2/head
+15c9f4f80973a2758462ab2066b6ad9fe8dcf03d	refs/pull/2/merge
+a5a7751a33b7e86c5e9bb07b26001bb17d775d1a	refs/pull/4/head
+31a45fc257e8433c8d8804e3e848cf61c9d3166c	refs/pull/4/merge
+
+É claro que, se você estiver no seu repositório e executar [git ls-remote] originou qualquer outro controle remoto que queira verificar, ele mostrará algo semelhante a ele.
+
+Se o repositório estiver no GitHub e você tiver qualquer solicitação de pull que tenha sido aberta, você obterá essas referências pré-fixadas [refs/pull/]. Estes são basicamente ramos, mas desde que eles não estão sob [refs/heads/] você não obtê-los normalmente quando você clona ou buscar a partir do servidor - o processo de busca os ignora normalmente.
+
+Existem duas referências por solicitação pull - aquela que termina em [/head] pontos com exatamente o mesmo commit que o último commit na ramificação Pull Request. Então, se alguém abre uma solicitação de recebimento em nosso repositório e seu ramo é nomeado [bug-fix] e ele aponta para cometer a5a775, então no nosso repositório não teremos um bug-fixramo (uma vez que está em seu garfo), mas vai ter [ pull/<pr#>/headq ] ue aponta para a5a775. Isso significa que podemos facilmente extrair todos os ramos de Pull Request de uma só vez, sem ter que adicionar um monte de controles remotos.
+
+Agora, você poderia fazer algo como buscar a referência diretamente.
+
+$ git fetch origin refs/pull/958/head
+From https://github.com/libgit2/libgit2
+ * branch            refs/pull/958/head -> FETCH_HEAD
+ 
+Isso diz ao Git, “Conecte-se ao origincontrole remoto e baixe o ref nomeado refs/pull/958/head.” Git obedece alegremente e faz o download de tudo que você precisa para construir aquele ref, e coloca um ponteiro para o commit que você quer sob .git/FETCH_HEAD. Você pode seguir isso git merge FETCH_HEADem uma ramificação na qual deseja testá-lo, mas essa mensagem de consolidação de mesclagem parece um pouco estranha. Além disso, se você está revendo muitos pedidos de pull, isso é entediante.
+
+Há também uma maneira de buscar todos os pedidos de pull e mantê-los atualizados sempre que você se conectar ao controle remoto. Abra o .git/configseu editor favorito e procure o origincontrole remoto. Deve parecer um pouco assim:
+
+[remote "origin"]
+    url = https://github.com/libgit2/libgit2
+    fetch = +refs/heads/*:refs/remotes/origin/*
+
+Essa linha que começa com fetch =é um "refspec". É uma maneira de mapear nomes no controle remoto com nomes em seu .gitdiretório local . Este em particular diz ao Git: "as coisas que estão no controle remoto refs/headsdevem ir no meu repositório local abaixo refs/remotes/origin". Você pode modificar esta seção para adicionar outro refspec:
+
+[remote "origin"]
+    url = https://github.com/libgit2/libgit2.git
+    fetch = +refs/heads/*:refs/remotes/origin/*
+    fetch = +refs/pull/*/head:refs/remotes/origin/pr/*
+
+Essa última linha diz ao Git: “Todos os refs que se parecem refs/pull/123/head devem ser armazenados localmente como refs/remotes/origin/pr/123.” Agora, se você salvar esse arquivo, e faça um git fetch:
+
+$ git fetch
+# …
+ * [new ref]         refs/pull/1/head -> origin/pr/1
+ * [new ref]         refs/pull/2/head -> origin/pr/2
+ * [new ref]         refs/pull/4/head -> origin/pr/4
+# …
+Agora, todas as solicitações de pull remotas são representadas localmente por referências que agem de maneira semelhante ao rastreamento de ramificações; eles são somente leitura e são atualizados quando você faz uma busca. Isso torna super fácil testar o código de uma solicitação de pull localmente:
+
+$ git checkout pr/2
+Checking out files: 100% (3769/3769), done.
+Branch pr/2 set up to track remote branch pr/2 from origin.
+Switched to a new branch 'pr/2'
+
+Os olhos de águia entre vocês headnotariam o no final da porção remota do refspec. Há também um refs/pull/#/merge  ref no lado do GitHub, que representa o commit que resultaria se você apertasse o botão “merge” no site. Isso pode permitir que você teste a mesclagem antes mesmo de apertar o botão.
+
+(Puxar Solicitações em Pedidos de Retirada)
+Você não apenas pode abrir as solicitações pull que segmentam a principal ou a master filial, mas também pode abrir uma solicitação pull para segmentar qualquer filial na rede. Na verdade, você pode até segmentar outra solicitação de extração.
+
+Se você vir uma Solicitação de Pull que está se movendo na direção certa e tiver uma ideia de uma mudança que depende disso ou se não tiver certeza se é uma boa ideia ou se simplesmente não tiver acesso push ao branch de destino, você pode abrir uma solicitação pull diretamente para ela.
+
+Quando você abre uma Solicitação de Pull, há uma caixa na parte superior da página que especifica a qual ramificação você está solicitando o recebimento e de quem você está solicitando a retirada. Se você apertar o botão "Editar" à direita da caixa, você pode alterar não apenas os ramos, mas também o fork.
+
+
+
+    [Figura 118. Altere manualmente o garfo e a ramificação de destino da solicitação de extração.]
+
+
+
+Aqui você pode facilmente especificar para mesclar sua nova ramificação em outra solicitação pull ou outra bifurcação do projeto.
+
+(Menções e Notificações)
+O GitHub também tem um sistema de notificações bem legal que pode ser útil quando você tiver dúvidas ou precisar de feedback de indivíduos ou equipes específicas.
+
+Em qualquer comentário, você pode começar a digitar um @personagem e ele começará a preencher automaticamente com os nomes e nomes de usuário das pessoas que são colaboradores ou colaboradores no projeto.
+
+
+
+                [Figura 119. Comece a digitar @ para mencionar alguém.]
+
+
+Você também pode mencionar um usuário que não está nessa lista suspensa, mas muitas vezes o preenchimento automático pode torná-lo mais rápido.
+
+Depois de postar um comentário com uma menção do usuário, esse usuário será notificado. Isso significa que isso pode ser uma maneira realmente eficaz de atrair pessoas para conversas, em vez de fazê-las pesquisar. Muitas vezes, em solicitações de pull no GitHub, as pessoas atraem outras pessoas em suas equipes ou na empresa para revisar um problema ou uma solicitação pull.
+
+Se alguém for mencionado em uma solicitação ou problema de extração, ele será "inscrito" nela e continuará recebendo notificações sempre que alguma atividade ocorrer nela. Você também será inscrito em algo se você o abrir, se estiver assistindo ao repositório ou se você comentar algo. Se você não deseja mais receber notificações, há um botão "Cancelar inscrição" na página em que você pode clicar para parar de receber atualizações.
+
+
+
+            [Figura 120. Cancelar Assinatura de um Problema ou Pedido de Retirada.]
+
+
+
+(A página de notificações)
+Quando mencionamos “notificações” aqui com relação ao GitHub, queremos dizer uma maneira específica com que o GitHub tenta entrar em contato com você quando os eventos acontecem e há algumas maneiras diferentes de configurá-los. Se você acessar a guia "Central de notificações" na página de configurações, poderá ver algumas das opções disponíveis.
+
+
+
+            [Figura 121. Opções do centro de notificação.]
+
+
+
+As duas opções são obter notificações sobre “E-mail” e sobre “Web” e você pode escolher entre uma ou outra coisa para quando participar ativamente de atividades e para atividades em repositórios que estiver assistindo.
+
+NOTIFICAÇÕES DA WEB
+As notificações da Web só existem no GitHub e você só pode verificá-las no GitHub. Se você tiver essa opção selecionada nas suas preferências e uma notificação for acionada para você, você verá um pequeno ponto azul sobre o ícone de notificações na parte superior da tela, conforme visto no centro de notificações. .
+
+
+
+            [Figura 122. Centro de Notificação.]
+
+
+
+Se você clicar nele, verá uma lista de todos os itens sobre os quais você foi notificado, agrupados por projeto. Você pode filtrar para as notificações de um projeto específico, clicando em seu nome na barra lateral esquerda. Você também pode confirmar a notificação clicando no ícone de marca de seleção ao lado de qualquer notificação ou confirmar todas as notificações em um projeto clicando na marca de seleção na parte superior do grupo. Há também um botão mudo ao lado de cada marca de seleção na qual você pode clicar para não receber mais notificações sobre esse item.
+
+Todas essas ferramentas são muito úteis para lidar com um grande número de notificações. Muitos usuários avançados do GitHub simplesmente desativarão totalmente as notificações por e-mail e gerenciarão todas as notificações por meio dessa tela.
+
+NOTIFICAÇÕES POR EMAIL
+As notificações por email são a outra maneira de lidar com notificações por meio do GitHub. Se você tiver ativado, receberá e-mails para cada notificação. Vimos exemplos disso em Comentários enviados como notificações por email e Notificação por email de uma nova solicitação pull. . Os e-mails também serão encadeados corretamente, o que é bom se você estiver usando um cliente de e-mail segmentado.
+
+Há também uma boa quantidade de metadados incorporados nos cabeçalhos dos e-mails que o GitHub envia para você, o que pode ser muito útil para configurar filtros e regras personalizados.
+
+Por exemplo, se olharmos para os cabeçalhos de e-mail reais enviados para Tony no e-mail mostrado em Notificação por e-mail de uma nova solicitação pull. , veremos o seguinte entre as informações enviadas:
+
+To: tonychacon/fade <fade@noreply.github.com>
+Message-ID: <tonychacon/fade/pull/1@github.com>
+Subject: [fade] Wait longer to see the dimming effect better (#1)
+X-GitHub-Recipient: tonychacon
+List-ID: tonychacon/fade <fade.tonychacon.github.com>
+List-Archive: https://github.com/tonychacon/fade
+List-Post: <mailto:reply+i-4XXX@reply.github.com>
+List-Unsubscribe: <mailto:unsub+i-XXX@reply.github.com>,...
+X-GitHub-Recipient-Address: tchacon@example.com
+
+Há algumas coisas interessantes aqui. Se você quiser realçar ou redirecionar e-mails para este projeto em particular ou até mesmo para Pull Request, as informações nos fornecerão [Message-ID] todos os dados em <user>/<project>/<type>/<id> formato. Se isso fosse um problema, por exemplo, o <type> campo teria sido "problemas" em vez de "puxar".
+
+Os campos [List-Poste] [List-Unsubscribe ] significam que, se você tiver um cliente de e-mail que os entenda, poderá postar facilmente na lista ou "Cancelar inscrição" do encadeamento. Isso seria essencialmente o mesmo que clicar no botão "mudo" na versão da notificação da Web ou "Cancelar inscrição" na página "Solicitar ou solicitar solicitação".
+
+Também é importante notar que, se você tiver as notificações por email e da Web ativadas e ler a versão de email da notificação, a versão da Web também será marcada como lida se você tiver imagens permitidas em seu cliente de email.
+
+(Arquivos Especiais)
+Existem alguns arquivos especiais que o GitHub irá notar se eles estiverem presentes em seu repositório.
+
+README
+O primeiro é o README arquivo, que pode ser de praticamente qualquer formato que o GitHub reconheça como prosa. Por exemplo, poderia ser README, README.md, README.asciidoc, etc. Se GitHub vê um arquivo README na sua fonte, ele irá torná-lo na página de destino do projeto.
+
+Muitas equipes usam esse arquivo para armazenar todas as informações relevantes do projeto para alguém que possa ser novo no repositório ou projeto. Isso geralmente inclui coisas como:
+
+.O que o projeto é para
+.Como configurar e instalar
+.Um exemplo de como usá-lo ou executá-lo
+.A licença que o projeto é oferecido sob
+.Como contribuir para isso
+
+Como o GitHub renderizará esse arquivo, você poderá incorporar imagens ou links para maior facilidade de compreensão.
+
+(CONTRIBUIÇÃO)
+O outro arquivo especial que o GitHub reconhece é o CONTRIBUTING arquivo. Se você tiver um arquivo CONTRIBUTING com qualquer extensão de arquivo, o GitHub mostrará Abrindo uma solicitação de recebimento quando houver um arquivo CONTRIBUTING. quando alguém começa a abrir um pedido de pull.
+
+
+
+                [Figura 123. Abrindo uma solicitação pull quando existe um arquivo CONTRIBUTING.]
+
+
+
+A ideia aqui é que você pode especificar coisas específicas que deseja ou não em uma solicitação pull enviada para seu projeto. Dessa forma, as pessoas podem ler as diretrizes antes de abrir a solicitação de recebimento.
+
+(Administração de Projetos)
+Geralmente, não há muitas coisas administrativas que você pode fazer com um único projeto, mas há alguns itens que podem ser de interesse.
+
+(Alterando o ramo padrão)
+Se você estiver usando uma ramificação diferente de "master" como sua ramificação padrão que deseja que as pessoas abram as Solicitações de Pull no padrão ou veja por padrão, você poderá alterá-la na página de configurações do seu repositório na guia "Opções".
+
+
+
+                    [Figura 124. Altere a ramificação padrão de um projeto.]
+
+
+
+Simplesmente altere a ramificação padrão na lista suspensa, que será o padrão para todas as principais operações a partir de então, incluindo qual branch está com check-out por padrão quando alguém clona o repositório.
+
+(Transferindo um projeto)
+Se você quiser transferir um projeto para outro usuário ou uma organização no GitHub, há uma opção "Transferir propriedade" na parte inferior da mesma guia "Opções" da página de configurações do seu repositório que permite fazer isso.
+
+
+
+            [Figura 125. Transferir um projeto para outro usuário ou organização do GitHub.]
+
+
+
+Isso é útil se você está abandonando um projeto e alguém quer assumir o controle, ou se o seu projeto está crescendo e quer movê-lo para uma organização.
+
+Isso não apenas move o repositório junto com todos os observadores e estrelas para outro local, como também configura um redirecionamento de sua URL para o novo local. Ele também redirecionará clones e buscas do Git, não apenas solicitações da web.
+
+
+6.4 [[ GitHub - Gerenciando uma organização ]]
+
+*Gerenciando uma organização
+Além das contas de usuário único, o GitHub tem o que chamamos de Organizações. Como contas pessoais, as contas organizacionais têm um namespace onde todos os seus projetos existem, mas muitas outras coisas são diferentes. Essas contas representam um grupo de pessoas com propriedade compartilhada de projetos, e há muitas ferramentas para gerenciar subgrupos dessas pessoas. Normalmente, essas contas são usadas para grupos de código aberto (como "perl" ou "rails") ou empresas (como "google" ou "twitter").
+
+(Noções básicas da organização)
+Uma organização é muito fácil de criar; basta clicar no ícone "+" no canto superior direito de qualquer página do GitHub e selecionar "Nova organização" no menu.
+
+
+
+
+                    [Figura 126. O item de menu “Nova organização”.]
+
+
+
+
+Primeiro, você precisará nomear sua organização e fornecer um endereço de e-mail para um ponto de contato principal para o grupo. Então você pode convidar outros usuários para serem co-proprietários da conta, se você quiser.
+
+Siga estes passos e em breve você será o dono de uma nova organização. Como contas pessoais, as organizações são gratuitas se tudo que você planeja armazenar lá for de código aberto.
+
+Como proprietário de uma organização, quando você distribui um repositório, você terá a opção de bifurcá-lo no namespace da sua organização. Quando você cria novos repositórios, pode criá-los na sua conta pessoal ou em qualquer uma das organizações nas quais você é proprietário. Você também "assiste" automaticamente a qualquer novo repositório criado nessas organizações.
+
+Assim como no seu avatar , você pode enviar um avatar para sua organização para personalizá-lo um pouco. Além disso, assim como as contas pessoais, você tem uma página de destino para a organização que lista todos os seus repositórios e pode ser visualizada por outras pessoas.
+
+Agora vamos cobrir algumas das coisas que são um pouco diferentes com uma conta organizacional.
+
+(Equipes)
+As organizações são associadas a pessoas individuais por meio de equipes, que são simplesmente um agrupamento de contas de usuários individuais e repositórios dentro da organização e que tipo de acesso essas pessoas têm nesses repositórios.
+
+Por exemplo, digamos que sua empresa tem três repositórios: frontend, backend, e deployscripts. Você iria querer seus HTML / CSS desenvolvedores / JavaScript para ter acesso a frontend e talvez backend, e suas operações as pessoas tenham acesso a backend e deployscripts. As equipes facilitam isso, sem ter que gerenciar os colaboradores para cada repositório individual.
+
+A página Organização mostra um painel simples de todos os repositórios, usuários e equipes que estão nessa organização.
+
+
+
+                        [Figura 127. A página Organização.]
+
+
+
+Para gerenciar suas equipes, você pode clicar na barra lateral Equipes, no lado direito da página, na página Organização. . Isso levará você a uma página que você pode usar para adicionar membros à equipe, adicionar repositórios à equipe ou gerenciar as configurações e os níveis de controle de acesso da equipe. Cada equipe pode ter somente leitura, leitura / gravação ou acesso administrativo aos repositórios. Você pode alterar esse nível clicando no botão "Configurações" na página da equipe. .
+
+
+
+
+                        [Figura 128. A página da equipe.]
+
+
+
+Quando você convidar alguém para uma equipe, ele receberá um e-mail informando que foi convidado.
+
+Além disso, a equipe @mentions(como @acmecorp/frontend) funciona da mesma forma que os usuários individuais, exceto que todos os membros da equipe são inscritos no encadeamento. Isso é útil se você quer a atenção de alguém em uma equipe, mas não sabe exatamente a quem perguntar.
+
+Um usuário pode pertencer a qualquer número de equipes, portanto, não se limite apenas às equipes de controle de acesso. Equipes de interesses especiais gostam ux, cssou refactoringsão úteis para certos tipos de perguntas, e outras gostam legale são colorblindde um tipo completamente diferente.
+
+(Registro de Auditoria)
+As organizações também dão aos proprietários acesso a todas as informações sobre o que aconteceu sob a organização. Você pode ir para a guia Log de auditoria e ver quais eventos ocorreram no nível da organização, quem os executou e em que parte do mundo eles foram feitos.
+
+
+                        [Figura 129. O log de auditoria.]
+
+
+Você também pode filtrar para tipos específicos de eventos, lugares específicos ou pessoas específicas.
+
+
+6.5 [[ GitHub - Script do GitHub ]]
+
+*Script do GitHub
+Portanto, agora cobrimos todos os principais recursos e fluxos de trabalho do GitHub, mas qualquer grupo grande ou projeto terá personalizações que eles possam querer fazer ou serviços externos que possam querer integrar.
+
+Felizmente para nós, o GitHub é realmente bastante hackable em muitos aspectos. Nesta seção, abordaremos como usar o sistema de ganchos do GitHub e sua API para fazer o GitHub funcionar como queremos.
+
+(Serviços e ganchos)
+A seção Ganchos e Serviços da administração do repositório do GitHub é a maneira mais fácil de o GitHub interagir com sistemas externos.
+
+Serviços
+Primeiro vamos dar uma olhada em Serviços. As integrações de Ganchos e Serviços podem ser encontradas na seção Configurações do seu repositório, onde anteriormente analisamos a adição de Colaboradores e a alteração da ramificação padrão do seu projeto. Na aba “Webhooks and Services”, você verá algo como a seção de configuração de Serviços e Ganchos. .
+
+
+
+                    [Figura 130. Seção de Configuração de Serviços e Ganchos.]
+
+
+Existem dezenas de serviços que você pode escolher, a maioria deles integrações em outros sistemas comerciais e de código aberto. A maioria deles é para serviços de Integração Contínua, rastreadores de bugs e problemas, sistemas de sala de bate-papo e sistemas de documentação. Vamos percorrer a criação de um muito simples, o gancho de e-mail. Se você escolher "e-mail" na lista suspensa "Adicionar serviço", você receberá uma tela de configuração, como a configuração do serviço de e-mail. .
+
+
+
+                    [Figura 131. Configuração do serviço de email.]
+
+
+Nesse caso, se apertarmos o botão "Adicionar serviço", o endereço de e-mail especificado receberá um e-mail toda vez que alguém acessar o repositório. Os serviços podem ouvir diversos tipos de eventos, mas a maioria só ouve eventos push e, em seguida, faz algo com esses dados.
+
+Se há um sistema que você está usando e gostaria de integrar ao GitHub, você deve verificar aqui se existe uma integração de serviço existente disponível. Por exemplo, se você estiver usando o Jenkins para executar testes em sua base de código, poderá ativar a integração de serviço integrado do Jenkins para iniciar uma execução de teste sempre que alguém acessar seu repositório.
+
+(Ganchos)
+Se você precisar de algo mais específico ou quiser se integrar a um serviço ou site que não esteja incluído nessa lista, poderá usar o sistema de ganchos mais genérico. Os ganchos do repositório do GitHub são bem simples. Você especifica um URL e o GitHub postará uma carga HTTP para esse URL em qualquer evento que você desejar.
+
+Geralmente, a maneira como isso funciona é que você pode configurar um pequeno serviço da Web para escutar uma carga útil do gancho do GitHub e, em seguida, fazer algo com os dados quando eles forem recebidos.
+
+Para ativar um gancho, clique no botão “Adicionar webhook” na seção de configuração Serviços e Ganchos. . Isso levará você a uma página que se parece com a configuração do Web hook. .
+
+
+                        [Figura 132. Configuração do Web hook.]
+
+
+A configuração para um web hook é bem simples. Na maioria dos casos, basta digitar um URL e uma chave secreta e clicar em "Adicionar webhook". Existem algumas opções para quais eventos você deseja que o GitHub envie uma carga útil para ele - o padrão é apenas obter uma carga útil para o pushevento, quando alguém envia um novo código para qualquer ramificação do seu repositório.
+
+Vamos ver um pequeno exemplo de um serviço da web que você pode configurar para lidar com um web hook. Usaremos o framework da web Ruby Sinatra, já que é bastante conciso e você deve ser capaz de ver facilmente o que estamos fazendo.
+
+Digamos que queremos receber um email se uma pessoa específica for enviada para uma ramificação específica do nosso projeto, modificando um arquivo específico. Nós poderíamos facilmente fazer isso com código como este:
+
+require 'sinatra'
+require 'json'
+require 'mail'
+
+post '/payload' do
+  push = JSON.parse(request.body.read) # parse the JSON
+
+  # gather the data we're looking for
+  pusher = push["pusher"]["name"]
+  branch = push["ref"]
+
+  # get a list of all the files touched
+  files = push["commits"].map do |commit|
+    commit['added'] + commit['modified'] + commit['removed']
+  end
+  files = files.flatten.uniq
+
+  # check for our criteria
+  if pusher == 'schacon' &&
+     branch == 'ref/heads/special-branch' &&
+     files.include?('special-file.txt')
+
+    Mail.deliver do
+      from     'tchacon@example.com'
+      to       'tchacon@example.com'
+      subject  'Scott Changed the File'
+      body     "ALARM"
+    end
+  end
+end
+
+Aqui estamos pegando o payload do JSON que o GitHub nos entrega e procurando quem o empurrou, que branch eles enviaram e quais arquivos foram tocados em todos os commits que foram enviados. Em seguida, verificamos isso de acordo com nossos critérios e enviamos um e-mail se ele corresponder.
+
+Para desenvolver e testar algo assim, você tem um bom console de desenvolvedor na mesma tela em que você configurou o hook up. Você pode ver as últimas entregas que o GitHub tentou fazer para esse webhook. Para cada gancho que você pode escavar quando foi entregue, se foi bem sucedido e o corpo e os cabeçalhos para o pedido e a resposta. Isso torna incrivelmente fácil testar e depurar seus ganchos.
+
+
+                    [Figura 133. Informações de Depuração do Web Hook.]
+
+
+A outra grande característica disso é que você pode reenviar qualquer uma das cargas para testar seu serviço com facilidade.
+
+Para obter mais informações sobre como escrever webhooks e todos os diferentes tipos de eventos que você pode ouvir, acesse a documentação do desenvolvedor do GitHub em https://developer.github.com/webhooks/
+
+(A API do GitHub)
+Os serviços e ganchos permitem que você receba notificações por push sobre eventos que acontecem em seus repositórios, mas e se você precisar de mais informações sobre esses eventos? E se você precisar automatizar algo como adicionar colaboradores ou problemas de rotulagem?
+
+É aqui que a API do GitHub é útil. O GitHub tem vários terminais da API para fazer quase tudo que você pode fazer no site de maneira automatizada. Nesta seção, aprenderemos como autenticar e conectar-se à API, como comentar um problema e como alterar o status de uma solicitação pull por meio da API.
+
+(Uso Básico)
+A coisa mais básica que você pode fazer é uma solicitação GET simples em um nó de extremidade que não requer autenticação. Isso poderia ser um usuário ou informações somente leitura em um projeto de código aberto. Por exemplo, se quisermos saber mais sobre um usuário chamado "schacon", podemos executar algo assim:
+
+$ curl https://api.github.com/users/schacon
+{
+  "login": "schacon",
+  "id": 70,
+  "avatar_url": "https://avatars.githubusercontent.com/u/70",
+# …
+  "name": "Scott Chacon",
+  "company": "GitHub",
+  "following": 19,
+  "created_at": "2008-01-27T17:19:28Z",
+  "updated_at": "2014-06-10T02:37:23Z"
+}
+
+Há vários terminais como esse para obter informações sobre organizações, projetos, problemas, confirmações - praticamente tudo que você pode ver publicamente no GitHub. Você pode até usar a API para renderizar Markdown arbitrário ou encontrar um .gitignoremodelo.
+
+$ curl https://api.github.com/gitignore/templates/Java
+{
+  "name": "Java",
+  "source": "*.class
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+"
+}
+
+(Comentando sobre um problema)
+No entanto, se você quiser realizar uma ação no site, como comentar sobre um problema ou solicitar solicitação ou se quiser visualizar ou interagir com conteúdo particular, será necessário fazer a autenticação.
+
+Existem várias maneiras de autenticar. Você pode usar a autenticação básica apenas com seu nome de usuário e senha, mas geralmente é melhor usar um token de acesso pessoal. Você pode gerar isso na guia "Aplicativos" da sua página de configurações.
+
+
+        [Figura 134. Gere seu token de acesso na guia “Aplicativos” da sua página de configurações.]
+
+
+Ele perguntará quais escopos você deseja para este token e uma descrição. Certifique-se de usar uma boa descrição para se sentir confortável ao remover o token quando seu script ou aplicativo não for mais usado.
+
+O GitHub só mostrará o token uma vez, portanto, copie-o. Agora você pode usar isso para autenticar em seu script, em vez de usar um nome de usuário e senha. Isso é bom porque você pode limitar o escopo do que você quer fazer e o token é revogável.
+
+Isso também tem a vantagem de aumentar seu limite de taxa. Sem autenticação, você estará limitado a 60 solicitações por hora. Se você autenticar, poderá fazer até 5.000 solicitações por hora.
+
+Então, vamos usá-lo para comentar sobre um dos nossos problemas. Digamos que queremos deixar um comentário sobre um problema específico, edição nº 6. Para fazer isso, precisamos fazer uma solicitação[] HTTP POST repos/<user>/<repo>/issues/<num>/comments] com o token que acabamos de gerar como um cabeçalho de autorização.
+
+$ curl -H "Content-Type: application/json" \
+       -H "Authorization: token TOKEN" \
+       --data '{"body":"A new comment, :+1:"}' \
+       https://api.github.com/repos/schacon/blink/issues/6/comments
+{
+  "id": 58322100,
+  "html_url": "https://github.com/schacon/blink/issues/6#issuecomment-58322100",
+  ...
+  "user": {
+    "login": "tonychacon",
+    "id": 7874698,
+    "avatar_url": "https://avatars.githubusercontent.com/u/7874698?v=2",
+    "type": "User",
+  },
+  "created_at": "2014-10-08T07:48:19Z",
+  "updated_at": "2014-10-08T07:48:19Z",
+  "body": "A new comment, :+1:"
+}
+
+Agora, se você for a esse problema, poderá ver o comentário que acabamos de postar como em um comentário postado na API do GitHub. .
+
+
+
+                    [Figura 135. Um comentário postado da API do GitHub.]
+
+
+Você pode usar a API para fazer praticamente qualquer coisa que você possa fazer no site - criando e definindo marcos, atribuindo pessoas a problemas e solicitações de pull, criando e alterando rótulos, acessando dados de confirmação, criando novos commits e branches, abrindo, fechando ou mesclando Puxe Solicitações, criando e editando equipes, comentando linhas de código em uma Solicitação Pull, pesquisando o site e assim por diante.
+
+(Alterando o status de uma solicitação pull)
+Há um último exemplo que analisaremos, pois é muito útil se você estiver trabalhando com solicitações de extração. Cada commit pode ter um ou mais status associados a ele e há uma API para adicionar e consultar esse status.
+
+A maioria dos serviços de Integração Contínua e Testes usa essa API para reagir aos push testando o código que foi enviado e, em seguida, reportando se esse commit passou em todos os testes. Você também pode usar isso para verificar se a mensagem de confirmação está formatada corretamente, se o remetente seguiu todas as diretrizes de contribuição, se o commit foi assinado com validade - qualquer número de itens.
+
+Digamos que você configure um webhook em seu repositório que atinja um pequeno serviço da web que verifica uma Signed-off-bystring na mensagem de confirmação.
+
+require 'httparty'
+require 'sinatra'
+require 'json'
+
+post '/payload' do
+  push = JSON.parse(request.body.read) # parse the JSON
+  repo_name = push['repository']['full_name']
+
+  # look through each commit message
+  push["commits"].each do |commit|
+
+    # look for a Signed-off-by string
+    if /Signed-off-by/.match commit['message']
+      state = 'success'
+      description = 'Successfully signed off!'
+    else
+      state = 'failure'
+      description = 'No signoff found.'
+    end
+
+    # post status to GitHub
+    sha = commit["id"]
+    status_url = "https://api.github.com/repos/#{repo_name}/statuses/#{sha}"
+
+    status = {
+      "state"       => state,
+      "description" => description,
+      "target_url"  => "http://example.com/how-to-signoff",
+      "context"     => "validate/signoff"
+    }
+    HTTParty.post(status_url,
+      :body => status.to_json,
+      :headers => {
+        'Content-Type'  => 'application/json',
+        'User-Agent'    => 'tonychacon/signoff',
+        'Authorization' => "token #{ENV['TOKEN']}" }
+    )
+  end
+end
+
+Espero que isso seja bastante simples de seguir. Neste manipulador de gancho da web, examinamos cada commit que acabou de ser enviado, procuramos a string Signed-off na mensagem de commit e finalmente, POST via [HTTP para o /repos/<user>/<repo>/statuses/<commit_sha>] endpoint da API com o status.
+
+Nesse caso, você pode enviar um estado ( sucesso , falha , erro ), uma descrição do que aconteceu, uma URL de destino para a qual o usuário pode ir para obter mais informações e um “contexto”, caso haja vários status para uma única confirmação. Por exemplo, um serviço de teste pode fornecer um status e um serviço de validação como este também pode fornecer um status - o campo “contexto” é como eles são diferenciados.
+
+Se alguém abrir uma nova solicitação pull no GitHub e esse hook estiver configurado, você poderá ver algo como o status Commit por meio da API. .
+
+
+                [Figura 136. Status de confirmação por meio da API.]
+
+
+Agora você pode ver uma pequena marca de verificação verde ao lado do commit que tem uma string "Assinado fora de" na mensagem e uma cruz vermelha na que o autor esqueceu de assinar. Você também pode ver que a solicitação pull recebe o status do último commit na ramificação e avisa se é uma falha. Isso é realmente útil se você estiver usando essa API para resultados de testes, para não mesclar acidentalmente algo em que o último commit está falhando nos testes.
+
+(Octokit)
+Embora tenhamos feito quase tudo curle solicitações HTTP simples nesses exemplos, existem várias bibliotecas de código aberto que disponibilizam essa API de maneira mais idiomática. No momento desta publicação, os idiomas suportados incluem Go, Objective-C, Ruby e .NET. Confira http://github.com/octokit para mais informações sobre eles, pois eles lidam com grande parte do HTTP para você.
+
+Espero que essas ferramentas possam ajudar você a personalizar e modificar o GitHub para funcionar melhor em seus fluxos de trabalho específicos. Para obter documentação completa sobre toda a API, bem como guias para tarefas comuns, confira https://developer.github.com .
+
+
+6.6[[ GitHub - Resumo ]]
+
+*Resumo
+Agora você é um usuário do GitHub. Você sabe como criar uma conta, gerenciar uma organização, criar e enviar para repositórios, contribuir com projetos de outras pessoas e aceitar contribuições de outras pessoas. No próximo capítulo, você aprenderá ferramentas e dicas mais poderosas para lidar com situações complexas, o que realmente fará de você um mestre do Git.
